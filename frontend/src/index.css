@@ -1,0 +1,195 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+thead .ant-table-cell {
+  background-color: #343d55 !important;
+  color: #b4b7bd !important;
+}
+tbody .ant-table-cell {
+  background-color: #4b536b !important;
+  color: #b4b7bd !important;
+}
+
+.custom-table .ant-table-body {
+  overflow-y: auto !important;
+}
+
+.custom-table .ant-table-body::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-table .ant-table-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.custom-table .ant-table-body::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.custom-table .ant-table-body::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* For Firefox */
+.custom-table .ant-table-body {
+  scrollbar-width: thin;
+  scrollbar-color: #888 #f1f1f1;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .custom-table .ant-table-body::-webkit-scrollbar-track {
+    background: #1f2937;
+  }
+
+  .custom-table .ant-table-body::-webkit-scrollbar-thumb {
+    background: #4b5563;
+  }
+
+  .custom-table .ant-table-body::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+  }
+
+  .custom-table .ant-table-body {
+    scrollbar-color: #4b5563 #1f2937;
+  }
+}
+
+/* Input placeholder styles */
+.ant-input::placeholder,
+.ant-picker-input > input::placeholder,
+.ant-select-selection-placeholder,
+.ant-input-number-input::placeholder,
+.ant-input-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* For Ant Design Select placeholder */
+.ant-select-selection-placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* For TextArea placeholder */
+textarea::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* For DatePicker placeholder */
+.ant-picker-input > input::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* For focused states */
+.ant-input:focus::placeholder,
+.ant-picker-input > input:focus::placeholder,
+.ant-input-number-input:focus::placeholder,
+.ant-input-textarea:focus::placeholder {
+  opacity: 0.8;
+}
+
+/* For Firefox */
+.ant-input:-moz-placeholder,
+.ant-picker-input > input:-moz-placeholder,
+.ant-input-number-input:-moz-placeholder,
+.ant-input-textarea:-moz-placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+  opacity: 1;
+}
+
+.custom-table .ant-table {
+  background: transparent;
+}
+
+.custom-table .ant-table-thead > tr > th {
+  background: #1e293b !important;
+  color: white !important;
+  border-bottom: 1px solid #334155 !important;
+}
+
+.custom-table .ant-table-tbody > tr > td {
+  background: #0f172a !important;
+  color: #94a3b8 !important;
+  border-bottom: 1px solid #1e293b !important;
+}
+
+.custom-table .ant-table-tbody > tr:hover > td {
+  background: #1e293b !important;
+}
+
+.custom-table .ant-table {
+  border: 1px solid #334155 !important;
+}
+
+.custom-table .ant-table-container {
+  border: 1px solid #334155 !important;
+}
+
+.custom-table .ant-table-cell {
+  border-right: 1px solid #334155 !important;
+  border-bottom: 1px solid #334155 !important;
+}
+
+.custom-table .ant-table-thead > tr > th {
+  border-right: 1px solid #334155 !important;
+  border-bottom: 1px solid #334155 !important;
+}
+
+.custom-table .ant-table-tbody > tr > td {
+  border-right: 1px solid #334155 !important;
+  border-bottom: 1px solid #334155 !important;
+}
+
+.custom-table .ant-table-column-sorter {
+  color: white !important;
+}
+
+.custom-table .ant-table-filter-trigger {
+  color: white !important;
+}
+
+/* Make the filter dropdown icon and active state white */
+.custom-table .anticon-filter,
+.custom-table .ant-table-filter-trigger.active {
+  color: white !important;
+}
+
+/* Style the sort icons (up/down arrows) */
+.custom-table .ant-table-column-sorter-up,
+.custom-table .ant-table-column-sorter-down {
+  color: white !important;
+}
+
+/* Make active sort icons more visible */
+.custom-table .ant-table-column-sorter-up.active,
+.custom-table .ant-table-column-sorter-down.active {
+  color: #1677ff !important;
+}
+
+.ant-table .ant-btn-text:hover {
+  background-color: #334155 !important;
+}
+
+.ant-table .ant-btn-text:hover .anticon-edit {
+  color: #1677ff !important;
+}
+
+.ant-table .ant-btn-text:hover .anticon-delete {
+  color: #dc2626 !important;
+}
+
+
+.ant-switch {
+  background-color: #1e293b !important;
+}
+.ant-switch-checked {
+  background: #1677ff !important;
+}
+.ant-empty-description{
+  color: white!important;
+}

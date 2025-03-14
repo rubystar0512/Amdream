@@ -6,7 +6,6 @@ import api from "../../config";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import Papa from "papaparse";
-import moment from "moment";
 import { usePermissions } from "../../hooks/usePermission";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { useAuth } from "../../hooks/useAuth";
@@ -234,10 +233,10 @@ const ClassManage: React.FC = () => {
       {
         title: "Date",
         dataIndex: "lesson_date",
-        key: "class_date",
-        render: (text: string) => moment(text).format("DD/MM/YYYY"),
+        key: "lesson_date",
+        render: (text: string) => text,
         sorter: (a: any, b: any) =>
-          new Date(a.class_date).getTime() - new Date(b.class_date).getTime(),
+          new Date(a.lesson_date).getTime() - new Date(b.lesson_date).getTime(),
       },
       {
         title: "Student",
@@ -245,12 +244,15 @@ const ClassManage: React.FC = () => {
         key: "student_name",
         sorter: (a: any, b: any) =>
           a.student_name.localeCompare(b.student_name),
-        filters: auth.user?.role !== 'student' ? students
-          .map((student) => ({
-            text: `${student.first_name} ${student.last_name}`,
-            value: `${student.first_name} ${student.last_name}`,
-          }))
-          .sort((a, b) => a.text.localeCompare(b.text)) : undefined,
+        filters:
+          auth.user?.role !== "student"
+            ? students
+                .map((student) => ({
+                  text: `${student.first_name} ${student.last_name}`,
+                  value: `${student.first_name} ${student.last_name}`,
+                }))
+                .sort((a, b) => a.text.localeCompare(b.text))
+            : undefined,
         onFilter: (value: any, record: any) =>
           record.student_name.includes(value),
       },
@@ -260,12 +262,15 @@ const ClassManage: React.FC = () => {
         key: "teacher_name",
         sorter: (a: any, b: any) =>
           a.teacher_name.localeCompare(b.teacher_name),
-        filters: auth.user?.role !== 'teacher' ? teachers
-          .map((teacher) => ({
-            text: `${teacher.first_name} ${teacher.last_name}`,
-            value: `${teacher.first_name} ${teacher.last_name}`,
-          }))
-          .sort((a, b) => a.text.localeCompare(b.text)) : undefined,
+        filters:
+          auth.user?.role !== "teacher"
+            ? teachers
+                .map((teacher) => ({
+                  text: `${teacher.first_name} ${teacher.last_name}`,
+                  value: `${teacher.first_name} ${teacher.last_name}`,
+                }))
+                .sort((a, b) => a.text.localeCompare(b.text))
+            : undefined,
         onFilter: (value: any, record: any) =>
           record.teacher_name.includes(value),
       },
@@ -314,11 +319,11 @@ const ClassManage: React.FC = () => {
   );
 
   const tableData = lessons
-    .filter(lesson => {
-      if (auth.user?.role === 'student') {
+    .filter((lesson) => {
+      if (auth.user?.role === "student") {
         return lesson.Student.id === parseInt(auth.user.id);
       }
-      if (auth.user?.role === 'teacher') {
+      if (auth.user?.role === "teacher") {
         return lesson.Teacher.id === parseInt(auth.user.id);
       }
       return true;
@@ -326,7 +331,7 @@ const ClassManage: React.FC = () => {
     .map((lesson, index) => ({
       key: index,
       id: lesson.id,
-      class_date: lesson.lesson_date,
+      lesson_date: lesson.lesson_date,
       student_name: `${lesson.Student.first_name} ${lesson.Student.last_name}`,
       teacher_name: `${lesson.Teacher.first_name} ${lesson.Teacher.last_name}`,
       class_type: lesson.class_type.name,
@@ -393,7 +398,7 @@ const ClassManage: React.FC = () => {
               <div>
                 <Label htmlFor="class_date" value="Class Date" />
                 <TextInput
-                  id="class_date"
+                  id="lesson_date"
                   type="date"
                   required
                   value={classDate}

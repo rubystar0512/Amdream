@@ -14,6 +14,7 @@ const PaymentStLazy = lazy(() => import("./pages/pay/PaymentSt"));
 const ManageLazy = lazy(() => import("./pages/users/Manage"));
 const ForgotPasswordLazy = lazy(() => import("./pages/auth/ForgotPassword"));
 const ResetPasswordLazy = lazy(() => import("./pages/auth/ResetPassword"));
+const CalendarLazy = lazy(() => import("./pages/calendar/Calendar"));
 
 const routes = createBrowserRouter([
   {
@@ -72,6 +73,14 @@ const routes = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingSpinner />}>
             <PaymentStLazy />
+          </Suspense>
+        ),
+      },
+      {
+        path: "/calendar",
+        element: (
+          <Suspense fallback={<LoadingSpinner />}>
+            <CalendarLazy />
           </Suspense>
         ),
       },

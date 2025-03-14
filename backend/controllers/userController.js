@@ -30,7 +30,9 @@ exports.createMenu = async (req, res) => {
 
 exports.getAllMenus = async (req, res) => {
   try {
-    const menus = await Menu.findAll();
+    const menus = await Menu.findAll({
+      order: [["order", "ASC"]],
+    });
     res.status(200).json({
       success: true,
       data: menus,

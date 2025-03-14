@@ -1,0 +1,105 @@
+{
+  "success"   : true,
+  "resources" : {
+    "rows" : [
+      {
+        "id"         : "a",
+        "name"       : "Arcady",
+        "role"       : "Core developer",
+        "eventColor" : "orange"
+      },
+      {
+        "id"         : "b",
+        "name"       : "Dave",
+        "role"       : "Tech Sales",
+        "eventColor" : "orange"
+      },
+      {
+        "id"         : "c",
+        "name"       : "Henrik",
+        "role"       : "Sales",
+        "eventColor" : "orange"
+      },
+      {
+        "id"         : "d",
+        "name"       : "Linda",
+        "role"       : "Core developer",
+        "eventColor" : "green"
+      },
+      {
+        "id"         : "e",
+        "name"       : "Maxim",
+        "role"       : "Developer & UX",
+        "eventColor" : "blue"
+      },
+      {
+        "id"         : "f",
+        "name"       : "Mike",
+        "role"       : "CEO",
+        "eventColor" : "blue"
+      },
+      {
+        "id"         : "g",
+        "name"       : "Gloria",
+        "role"       : "CTO",
+        "eventColor" : "blue"
+      }
+    ]
+  },
+  "events" : {
+    "rows" : [
+      {
+        "id"         : 1,
+        "resourceId" : "a",
+        "name"       : "Make marketing plan",
+        "startDate"  : "2020-02-07 11:00",
+        "endDate"    : "2020-02-07 14:00",
+        "eventType"  : "Meeting"
+      },
+      {
+        "id"         : 2,
+        "resourceId" : "b",
+        "name"       : "Read spec.",
+        "startDate"  : "2020-02-07 12:00",
+        "endDate"    : "2020-02-07 15:00"
+      },
+      {
+        "id"         : 3,
+        "resourceId" : "c",
+        "name"       : "Sign documents",
+        "startDate"  : "2020-02-08 13:00",
+        "endDate"    : "2020-02-08 16:00"
+      },
+      {
+        "id"         : 4,
+        "resourceId" : "d",
+        "name"       : "Board meeting",
+        "startDate"  : "2020-02-09 09:00",
+        "endDate"    : "2020-02-09 11:00",
+        "eventType"  : "Meeting"
+      },
+      {
+        "id"         : 5,
+        "resourceId" : "e",
+        "name"       : "Sales call",
+        "startDate"  : "2020-02-06 10:00",
+        "endDate"    : "2020-02-06 12:00"
+      },
+      {
+        "id"         : 6,
+        "resourceId" : "f",
+        "name"       : "Customer visit",
+        "startDate"  : "2020-02-07 11:00",
+        "endDate"    : "2020-02-07 13:00",
+        "location"   : "Customer office"
+      },
+      {
+        "id"         : 7,
+        "resourceId" : "g",
+        "name"       : "Prepare happy hour",
+        "startDate"  : "2020-02-10 14:00",
+        "endDate"    : "2020-02-10 17:00"
+      }
+    ]
+  }
+}

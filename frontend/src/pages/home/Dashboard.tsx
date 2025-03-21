@@ -47,7 +47,11 @@ export default function Dashboard() {
           // Only fetch specific student's data
           const res = await api.get(`/students/${auth.user.id}/class-stats`);
           setStateTypeData(res.data || []); // Wrap in array since we're expecting single student data
-        } else if (auth.user?.role === "admin" || auth.user?.role === "manager") {
+        } else if (
+          auth.user?.role === "admin" ||
+          auth.user?.role === "manager" ||
+          auth.user?.role === "accountant"
+        ) {
           // Fetch all students data
           const res = await api.get("/students/class-stats");
           setStateTypeData(res.data || []);
@@ -57,13 +61,20 @@ export default function Dashboard() {
           // Only fetch specific teacher's salary data
           const res1 = await api.put(`/teachers/${auth.user.id}/salary`);
           setTeacherSalaryData(res1.data || []); // Wrap in array since we're expecting single teacher data
-        } else if (auth.user?.role === "admin") {
+        } else if (
+          auth.user?.role === "admin" ||
+          auth.user?.role === "accountant"
+        ) {
           // Fetch all teachers data
           const res1 = await api.post("/teachers/salary");
           setTeacherSalaryData(res1.data || []);
         }
 
-        if (auth.user?.role === "admin" || auth.user?.role === "teacher") {
+        if (
+          auth.user?.role === "admin" ||
+          auth.user?.role === "teacher" ||
+          auth.user?.role === "accountant"
+        ) {
           const res2 = await api.get("/class-types");
           setClassTypeData(res2.data || []);
         }
@@ -81,21 +92,22 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (dateRange[0] && dateRange[1]) {
-          const data = {
-            start_date: dateRange[0].format("YYYY-MM-DD"),
-            end_date: dateRange[1].format("YYYY-MM-DD"),
-          };
-          
-          if (auth.user?.role === "teacher") {
-            // Only fetch specific teacher's salary data
-            const res = await api.put(`/teachers/${auth.user.id}/salary`, data);
-            setTeacherSalaryData(res.data || []);
-          } else if (auth.user?.role === "admin") {
-            // Fetch all teachers data
-            const res = await api.post("/teachers/salary", data);
-            setTeacherSalaryData(res.data || []);
-          }
+        const data = {
+          start_date: (dateRange && dateRange[0]?.format("YYYY-MM-DD")) || null,
+          end_date: (dateRange && dateRange[1]?.format("YYYY-MM-DD")) || null,
+        };
+
+        if (auth.user?.role === "teacher") {
+          // Only fetch specific teacher's salary data
+          const res = await api.put(`/teachers/${auth.user.id}/salary`, data);
+          setTeacherSalaryData(res.data || []);
+        } else if (
+          auth.user?.role === "admin" ||
+          auth.user?.role === "accountant"
+        ) {
+          // Fetch all teachers data
+          const res = await api.post("/teachers/salary", data);
+          setTeacherSalaryData(res.data || []);
         }
       } catch (error: any) {
         console.error("Error fetching salary data:", error);
@@ -103,7 +115,7 @@ export default function Dashboard() {
       }
     };
 
-    if (dateRange[0] && dateRange[1]) fetchData();
+    fetchData();
   }, [dateRange, auth.user]);
 
   const handleApiError = (error: any) => {
@@ -282,8 +294,11 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="flex max-h-[80vh] w-[80vw] gap-2 flex-col">
-      {(auth.user?.role === "student" || auth.user?.role === "admin" || auth.user?.role === "manager") && (
+    <div className="flex max-h-[80vh] w-[80vw] flex-col gap-2">
+      {(auth.user?.role === "student" ||
+        auth.user?.role === "admin" ||
+        auth.user?.role === "manager" ||
+        auth.user?.role === "accountant") && (
         <Card
           title="Class State"
           className={`h-[40vh] w-[82vw]`}
@@ -322,7 +337,9 @@ export default function Dashboard() {
         </Card>
       )}
 
-      {(auth.user?.role === "teacher" || auth.user?.role === "admin") && (
+      {(auth.user?.role === "teacher" ||
+        auth.user?.role === "admin" ||
+        auth.user?.role === "accountant") && (
         <Card
           className="h-[40vh] w-[82vw]"
           headStyle={{
@@ -382,10 +399,9 @@ export default function Dashboard() {
               spinning: loading,
               size: "large",
             }}
-            
             style={{
               borderColor: "#334155",
-              width:"100vw"
+              width: "100vw",
             }}
             scroll={{ y: "24vh" }}
           />

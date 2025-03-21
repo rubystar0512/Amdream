@@ -415,11 +415,17 @@ const ClassManage: React.FC = () => {
                   onChange={(e) => setSelectedStudent(e.target.value)}
                 >
                   <option value="">Select Student</option>
-                  {students?.map((student) => (
-                    <option key={student.id} value={student.id}>
-                      {student.first_name} {student.last_name}
-                    </option>
-                  ))}
+                  {students
+                    ?.sort((a, b) =>
+                      `${a.first_name} ${a.last_name}`.localeCompare(
+                        `${b.first_name} ${b.last_name}`,
+                      ),
+                    )
+                    .map((student) => (
+                      <option key={student.id} value={student.id}>
+                        {student.first_name} {student.last_name}
+                      </option>
+                    ))}
                 </Select>
               </div>
 
@@ -432,11 +438,17 @@ const ClassManage: React.FC = () => {
                   onChange={(e) => setSelectedTeacher(e.target.value)}
                 >
                   <option value="">Select Teacher</option>
-                  {teachers.map((teacher) => (
-                    <option key={teacher.id} value={teacher.id}>
-                      {teacher.first_name} {teacher.last_name}
-                    </option>
-                  ))}
+                  {teachers
+                    .sort((a, b) =>
+                      `${a.first_name} ${a.last_name}`.localeCompare(
+                        `${b.first_name} ${b.last_name}`,
+                      ),
+                    )
+                    .map((teacher) => (
+                      <option key={teacher.id} value={teacher.id}>
+                        {teacher.first_name} {teacher.last_name}
+                      </option>
+                    ))}
                 </Select>
               </div>
 
@@ -508,11 +520,17 @@ const ClassManage: React.FC = () => {
                   onChange={(e) => setSelectedStudent(e.target.value)}
                 >
                   <option value="">Select Student</option>
-                  {students?.map((student) => (
-                    <option key={student.id} value={student.id}>
-                      {student.first_name} {student.last_name}
-                    </option>
-                  ))}
+                  {students
+                    ?.sort((a, b) =>
+                      `${a.first_name} ${a.last_name}`.localeCompare(
+                        `${b.first_name} ${b.last_name}`,
+                      ),
+                    )
+                    .map((student) => (
+                      <option key={student.id} value={student.id}>
+                        {student.first_name} {student.last_name}
+                      </option>
+                    ))}
                 </Select>
               </div>
 
@@ -525,11 +543,17 @@ const ClassManage: React.FC = () => {
                   onChange={(e) => setSelectedTeacher(e.target.value)}
                 >
                   <option value="">Select Teacher</option>
-                  {teachers.map((teacher) => (
-                    <option key={teacher.id} value={teacher.id}>
-                      {teacher.first_name} {teacher.last_name}
-                    </option>
-                  ))}
+                  {teachers
+                    .sort((a, b) =>
+                      `${a.first_name} ${a.last_name}`.localeCompare(
+                        `${b.first_name} ${b.last_name}`,
+                      ),
+                    )
+                    .map((teacher) => (
+                      <option key={teacher.id} value={teacher.id}>
+                        {teacher.first_name} {teacher.last_name}
+                      </option>
+                    ))}
                 </Select>
               </div>
 

@@ -79,7 +79,7 @@ exports.teachSalary = async (req, res) => {
 
     const whereClause = {};
     if (start_date && end_date) {
-      whereClause.class_date = { [Op.between]: [start_date, end_date] };
+      whereClause.lesson_date = { [Op.between]: [start_date, end_date] };
     }
 
     const teachers = await User.findAll({
@@ -177,7 +177,7 @@ exports.teachEachSalary = async (req, res) => {
 
     const whereClause = {};
     if (start_date && end_date) {
-      whereClause.class_date = { [Op.between]: [start_date, end_date] };
+      whereClause.lesson_date = { [Op.between]: [start_date, end_date] };
     }
 
     const teachers = await User.findAll({

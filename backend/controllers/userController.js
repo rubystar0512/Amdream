@@ -235,6 +235,11 @@ exports.getAllUsers = async (req, res) => {
           attributes: ["id", "role_name"],
         },
       ],
+      where: {
+        role_id: {
+          [Op.ne]: 5,
+        },
+      },
       attributes: { exclude: ["password", "token"] },
     });
 

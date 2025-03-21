@@ -183,13 +183,106 @@ textarea::placeholder {
   color: #dc2626 !important;
 }
 
-
 .ant-switch {
   background-color: #1e293b !important;
 }
 .ant-switch-checked {
   background: #1677ff !important;
 }
-.ant-empty-description{
-  color: white!important;
+.ant-empty-description {
+  color: white !important;
+}
+
+.ant-picker-panel {
+  background: transparent !important;
+}
+
+.ant-picker-content {
+  th {
+    color: gray !important;
+  }
+}
+
+.dark-calendar .ant-picker-calendar-date {
+  color: white;
+  background: #1b1b1b;
+}
+
+.dark-calendar .ant-picker-calendar-date-value {
+  color: white;
+}
+
+.dark-calendar .ant-picker-calendar-date-today {
+  background: #2b2b2b;
+}
+
+.dark-calendar .ant-picker-calendar-date-selected {
+  background: #177ddc;
+}
+
+.dark-calendar .ant-picker-calendar-cell {
+  color: white;
+}
+
+.dark-calendar .ant-picker-calendar-date:hover {
+  background: #2b2b2b;
+}
+
+.dark-calendar .ant-picker-calendar-date-disabled {
+  color: rgba(255, 255, 255, 0.25);
+  background: #1b1b1b;
+}
+
+.rbc-toolbar button {
+  color: gray !important;
+}
+
+.rbc-toolbar button:hover {
+  background-color: #555 !important;
+}
+.rbc-toolbar-label {
+  color: gray;
+  text-align: left;
+  font-size: 24px;
+}
+
+.rbc-active {
+  background-color: #334155 !important;
+}
+
+.rbc-button-link {
+  color: gray !important;
+}
+.rbc-header {
+  color: gray !important;
+  font-size: 20px !important;
+}
+.rbc-off-range-bg {
+  background-color: #2b2b2b !important;
+}
+.rbc-month-view {
+  border-radius: 12px !important;
+}
+.rbc-time-view {
+  border-radius: 12px !important;
+}
+.rbc-time-view .rbc-time-gutter {
+  border-radius: 12px !important;
+}
+.rbc-time-view .rbc-time-gutter .rbc-time-column {
+  border-radius: 12px !important;
+}
+
+.rbc-calendar {
+  .rbc-day-bg {
+    border: 1px solid gray !important;
+  }
+}
+
+.rbc-label {
+  color: gray;
+}
+
+.rbc-today {
+  background-color: #b4b7bd !important;
 }

@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import LoadingSpinner from "./components/LoadingSpinner";
 
@@ -16,6 +16,8 @@ const ForgotPasswordLazy = lazy(() => import("./pages/auth/ForgotPassword"));
 const ResetPasswordLazy = lazy(() => import("./pages/auth/ResetPassword"));
 const CalendarLazy = lazy(() => import("./pages/calendar/Calendar"));
 const NotFoundLazy = lazy(() => import("./components/NotFound"));
+const ClassInfoLazy = lazy(() => import("./pages/class/ClassInfo"));
+const WordsLazy = lazy(() => import("./pages/class/Words"));
 
 const routes = createBrowserRouter([
   {
@@ -85,6 +87,22 @@ const routes = createBrowserRouter([
           </Suspense>
         ),
       },
+      {
+        path: "/class/info",
+        element: (
+          <Suspense fallback={<LoadingSpinner />}>
+            <ClassInfoLazy />
+          </Suspense>
+        ),
+      },
+      {
+        path: "/class/words",
+        element: (
+          <Suspense fallback={<LoadingSpinner />}>
+            <WordsLazy />
+          </Suspense>
+        ),
+      },
     ],
   },
   {
@@ -118,6 +136,10 @@ const routes = createBrowserRouter([
         <ResetPasswordLazy />
       </Suspense>
     ),
+  },
+  {
+    path: "/",
+    element: <Navigate to="/login" replace />,
   },
   {
     path: "*",

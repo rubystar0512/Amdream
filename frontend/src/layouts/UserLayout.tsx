@@ -10,6 +10,8 @@ import {
   FaAdjust,
   FaCalendar,
   FaPaypal,
+  FaFileWord,
+  FaInfo,
 } from "react-icons/fa";
 import { HiLogout } from "react-icons/hi";
 import api from "../config";
@@ -40,6 +42,8 @@ const iconComponents: { [key: string]: ReactNode } = {
   FaAdjust: <FaAdjust />,
   FaCalendar: <FaCalendar />,
   FaPaypal: <FaPaypal />,
+  FaFileWord: <FaFileWord />,
+  FaInfo: <FaInfo />,
 };
 
 export default function UserLayout() {

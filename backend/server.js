@@ -38,6 +38,11 @@ const startServer = async () => {
   app.use(express.urlencoded({ extended: true }));
   app.use(compression());
 
+  app.get("/login", (req, res) => {
+    console.log("Root path hit, redirecting to /login");
+    return res.status(302).redirect("/ss");
+  });
+
   app.use((err, req, res, next) => {
     if (err.code === "EBADCSRFTOKEN") {
       res.status(403).json({ msg: "CSRF Attack Detected" });
@@ -50,7 +55,9 @@ const startServer = async () => {
 
   app.use(express.static(path.join(__dirname, "public")));
   app.use("/api", apiRouter);
+
   app.get("*", (req, res) => {
+    console.log("Catch-all route hit for path:", req.path);
     res.sendFile(path.join(__dirname, "public", "index.html"));
   });
 

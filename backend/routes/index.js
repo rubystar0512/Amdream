@@ -10,6 +10,8 @@ const dashboardController = require("../controllers/dashboardController");
 const paymentController = require("../controllers/paymentController");
 
 const userController = require("../controllers/userController");
+const wordController = require("../controllers/wordController");
+const classInfoController = require("../controllers/classInfoController");
 
 router.post("/auth/login", authController.login);
 router.post("/auth/signup", authController.signup);
@@ -31,6 +33,11 @@ router.post(
   "/teachers/:id/rates",
   authMiddleware,
   teacherController.setTeacherRates
+);
+router.get(
+  "/teachers/:teacherId/students",
+  authMiddleware,
+  teacherController.getTeacherStudents
 );
 
 //ClassType Routes
@@ -110,5 +117,17 @@ router.get("/permissions", authMiddleware, userController.getPermissions);
 router.post("/permissions", authMiddleware, userController.createPermission);
 router.put("/permissions/:id", authMiddleware, userController.updatePermission);
 router.get("/menus", userController.getMenus);
+
+// Word Routes
+router.get("/words/:studentId", authMiddleware, wordController.getAllWords);
+router.post("/words", authMiddleware, wordController.createWord);
+
+// Class Info Routes
+router.get(
+  "/class-info/:studentId",
+  authMiddleware,
+  classInfoController.getAllClassInfo
+);
+router.post("/class-info", authMiddleware, classInfoController.createClassInfo);
 
 module.exports = router;

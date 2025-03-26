@@ -14,6 +14,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { usePermissions } from "../../hooks/usePermission";
 import LoadingSpinner from "../../components/LoadingSpinner";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function Students() {
   const navigate = useNavigate();
@@ -27,6 +28,8 @@ export default function Students() {
   const [note, setNote] = useState(""); // Add note state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [specifiedStudentData, setSpecifiedStudentData] = useState<any[]>([]);
+  const { user } = useAuth();
 
   const [loading, setLoading] = useState(false);
 
@@ -38,7 +41,11 @@ export default function Students() {
           theme: "dark",
         });
       } else {
-        fetchStudents();
+        if (user?.role === "teacher") {
+          fetchSpecifiedStudents();
+        } else {
+          fetchStudents();
+        }
       }
     }
   }, [permissions, navigate, loading_1]);
@@ -48,6 +55,17 @@ export default function Students() {
       setLoading(true);
       const res = await api.get("/students");
       setStudentData(res.data || []);
+      setLoading(false);
+    } catch (error: any) {
+      handleApiError(error);
+    }
+  };
+
+  const fetchSpecifiedStudents = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get(`/teachers/${user?.id}/students`);
+      setSpecifiedStudentData(res.data || []);
       setLoading(false);
     } catch (error: any) {
       handleApiError(error);
@@ -138,10 +156,10 @@ export default function Students() {
       const res = await api.put(`/students/${selectedStudent.id}`, updateData);
 
       // Update the student data by replacing the old student with the updated one
-      setStudentData(prevData => 
-        prevData.map(student => 
-          student.id === selectedStudent.id ? res.data.student : student
-        )
+      setStudentData((prevData) =>
+        prevData.map((student) =>
+          student.id === selectedStudent.id ? res.data.student : student,
+        ),
       );
 
       setOpenEditModal(false);
@@ -190,7 +208,6 @@ export default function Students() {
           <div className="text-center">{record?.note}</div>
         ),
       },
-      
     ] as TableColumnsType<any>
   ).concat(
     permissions.update || permissions.delete
@@ -223,6 +240,24 @@ export default function Students() {
       : [],
   );
 
+  const simpleColumns: TableColumnsType<any> = [
+    {
+      title: "Student name",
+      key: "name",
+      render: (_, record) => `${record.first_name} ${record.last_name}`,
+      sorter: (a, b) =>
+        `${a.first_name} ${a.last_name}`.localeCompare(
+          `${b.first_name} ${b.last_name}`,
+        ),
+    },
+    {
+      title: "Number of classes",
+      dataIndex: "class_count",
+      key: "class_count",
+      sorter: (a, b) => a.class_count - b.class_count,
+    },
+  ];
+
   if (loading_1) {
     return <LoadingSpinner />;
   }
@@ -230,39 +265,54 @@ export default function Students() {
   return (
     <Card className="max-h-[80vh] overflow-auto">
       <div className="overflow-x-auto shadow-md sm:rounded-lg">
-        {permissions.create && (
-          <button
-            className="mb-3 inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
-            type="button"
-            onClick={() => {
-              setOpenModal(true);
-              setFirstName("");
-              setLastName("");
-              setEmail("");
-              setPassword("");
-              setNote("");
-            }}
-          >
-            + Add Student
-          </button>
-        )}
+        {user?.role === "teacher" ? (
+          <Table
+            className="custom-table"
+            style={{ width: "70vw" }}
+            columns={simpleColumns}
+            dataSource={specifiedStudentData}
+            loading={loading}
+            pagination={false}
+            scroll={{ y: "50vh" }}
+            sticky
+          />
+        ) : (
+          <>
+            {permissions.create && (
+              <button
+                className="mb-3 inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
+                type="button"
+                onClick={() => {
+                  setOpenModal(true);
+                  setFirstName("");
+                  setLastName("");
+                  setEmail("");
+                  setPassword("");
+                  setNote("");
+                }}
+              >
+                + Add Student
+              </button>
+            )}
 
-        <Table
-          className="custom-table"
-          style={{ width: "70vw" }}
-          columns={columns}
-          dataSource={studentData.map((item, index) => ({
-            ...item,
-            key: index,
-          }))}
-          loading={{
-            spinning: loading,
-            size: "large",
-          }}
-          pagination={false}
-          scroll={{ y: "50vh" }}
-          sticky
-        />
+            <Table
+              className="custom-table"
+              style={{ width: "70vw" }}
+              columns={columns}
+              dataSource={studentData.map((item, index) => ({
+                ...item,
+                key: index,
+              }))}
+              loading={{
+                spinning: loading,
+                size: "large",
+              }}
+              pagination={false}
+              scroll={{ y: "50vh" }}
+              sticky
+            />
+          </>
+        )}
       </div>
 
       <Modal
@@ -407,7 +457,10 @@ export default function Students() {
               </div>
               <div>
                 <div className="mb-2 block">
-                  <Label htmlFor="edit_password" value="New Password (optional)" />
+                  <Label
+                    htmlFor="edit_password"
+                    value="New Password (optional)"
+                  />
                 </div>
                 <TextInput
                   id="edit_password"

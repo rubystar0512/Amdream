@@ -1,7 +1,8 @@
 const moment = require("moment");
 const bcrypt = require("bcryptjs");
-const { TeacherRate, ClassType, User } = require("../models");
+const { TeacherRate, ClassType, User, Calendar, Lesson } = require("../models");
 const { user_role } = require("../configs/key");
+const { Op, Sequelize } = require("sequelize");
 /**
  * @desc Get all teachers with their rates
  * @route GET /api/teachers
@@ -178,5 +179,91 @@ exports.dailyReport = async () => {
     }));
   } catch (error) {
     console.log("Error fetching teachers", error);
+  }
+};
+
+exports.getTeacherStudents = async (req, res) => {
+  try {
+    const teacherId = req.params.teacherId;
+
+    // Get students who have had lessons with this teacher
+    // Count the lessons and exclude those with only trial lessons
+    const students = await User.findAll({
+      where: { role_id: user_role.student },
+      include: [
+        {
+          model: Lesson,
+          as: "StudentLessons",
+          where: {
+            teacher_id: teacherId,
+          },
+          attributes: [],
+          required: true,
+        },
+      ],
+      attributes: [
+        "id",
+        "first_name",
+        "last_name",
+        [
+          Sequelize.fn("COUNT", Sequelize.col("StudentLessons.id")),
+          "class_count",
+        ],
+      ],
+      group: ["user.id", "user.first_name", "user.last_name"],
+    });
+
+    // Get students with upcoming scheduled classes
+    const studentsWithSchedule = await User.findAll({
+      where: { role_id: user_role.student },
+      include: [
+        {
+          model: Calendar,
+          as: "StudentCalendars",
+          where: {
+            teacher_id: teacherId,
+            class_date: { [Op.gte]: new Date() },
+            class_status: ["scheduled", "confirmed"],
+          },
+          required: true,
+          attributes: [],
+        },
+      ],
+      attributes: [
+        "id",
+        "first_name",
+        "last_name",
+        [Sequelize.literal("0"), "class_count"], // Set 0 for scheduled classes
+      ],
+      group: ["user.id", "user.first_name", "user.last_name"],
+    });
+
+    // Combine and deduplicate students, summing up class counts
+    const studentMap = new Map();
+
+    students.forEach((student) => {
+      studentMap.set(student.id, {
+        ...student.toJSON(),
+        class_count: parseInt(student.get("class_count")),
+      });
+    });
+
+    studentsWithSchedule.forEach((student) => {
+      if (studentMap.has(student.id)) {
+        // Student exists in both arrays, keep the lesson count
+        return;
+      }
+      studentMap.set(student.id, {
+        ...student.toJSON(),
+        class_count: 0, // New student with only scheduled classes
+      });
+    });
+
+    const uniqueStudents = Array.from(studentMap.values());
+
+    res.status(200).json(uniqueStudents);
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ msg: "Error fetching teacher's students", error });
   }
 };

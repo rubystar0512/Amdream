@@ -1,17 +1,13 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("./db");
 
-const Calendar = sequelize.define(
-  "calendar",
+const ClassInfo = sequelize.define(
+  "class_info",
   {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
-    },
-    class_type_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
     },
     student_id: {
       type: DataTypes.INTEGER,
@@ -21,23 +17,31 @@ const Calendar = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    class_status: {
+    course: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    class_date: {
-      type: DataTypes.DATE,
+    unit: {
+      type: DataTypes.STRING,
       allowNull: false,
     },
-    repeat: {
-      type: DataTypes.BOOLEAN,
+    can_do: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    notes: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    date: {
+      type: DataTypes.DATE,
       allowNull: false,
     },
   },
   {
-    tableName: "calendars",
+    tableName: "class_info",
     timestamps: true,
   }
 );
 
-module.exports = Calendar;
+module.exports = ClassInfo;

@@ -7,6 +7,9 @@ const Role = require("./role");
 const Permission = require("./permission");
 const Menu = require("./menu");
 const StudentInfo = require("./student_info");
+const Calendar = require("./calendar");
+const ClassInfo = require("./class_info");
+const Word = require("./words");
 const sequelize = require("./db");
 
 User.hasMany(StudentInfo, { foreignKey: "student_id", onDelete: "CASCADE" });
@@ -17,6 +20,51 @@ Lesson.belongsTo(User, { as: "Student", foreignKey: "student_id" });
 Lesson.belongsTo(User, { as: "Teacher", foreignKey: "teacher_id" });
 Payment.belongsTo(User, { as: "Student", foreignKey: "student_id" });
 StudentInfo.belongsTo(User, { as: "Student", foreignKey: "student_id" });
+
+Calendar.belongsTo(User, { as: "Student", foreignKey: "student_id" });
+Calendar.belongsTo(User, { as: "Teacher", foreignKey: "teacher_id" });
+Calendar.belongsTo(ClassType, { foreignKey: "class_type_id" });
+User.hasMany(Calendar, {
+  as: "StudentCalendars",
+  foreignKey: "student_id",
+  onDelete: "CASCADE",
+});
+User.hasMany(Calendar, {
+  as: "TeacherCalendars",
+  foreignKey: "teacher_id",
+  onDelete: "CASCADE",
+});
+ClassType.hasMany(Calendar, {
+  foreignKey: "class_type_id",
+  onDelete: "CASCADE",
+});
+
+ClassInfo.belongsTo(User, { as: "Student", foreignKey: "student_id" });
+ClassInfo.belongsTo(User, { as: "Teacher", foreignKey: "teacher_id" });
+User.hasMany(ClassInfo, {
+  as: "StudentClassInfo",
+  foreignKey: "student_id",
+  onDelete: "CASCADE",
+});
+User.hasMany(ClassInfo, {
+  as: "TeacherClassInfo",
+  foreignKey: "teacher_id",
+  onDelete: "CASCADE",
+});
+
+Word.belongsTo(User, { as: "Student", foreignKey: "student_id" });
+Word.belongsTo(User, { as: "Teacher", foreignKey: "teacher_id" });
+User.hasMany(Word, {
+  as: "StudentWords",
+  foreignKey: "student_id",
+  onDelete: "CASCADE",
+});
+User.hasMany(Word, {
+  as: "TeacherWords",
+  foreignKey: "teacher_id",
+  onDelete: "CASCADE",
+});
+
 User.hasMany(TeacherRate, {
   foreignKey: "teacher_id",
   onDelete: "CASCADE",
@@ -48,6 +96,11 @@ Permission.belongsTo(Role, { foreignKey: "role_id" });
 User.belongsTo(Role, { foreignKey: "role_id" });
 Role.hasMany(Permission, { foreignKey: "role_id", onDelete: "CASCADE" });
 
+User.hasMany(Lesson, {
+  as: "StudentLessons",
+  foreignKey: "student_id",
+});
+User.hasMany(Lesson, { foreignKey: "teacher_id", onDelete: "CASCADE" });
 module.exports = {
   sequelize,
   ClassType,
@@ -59,4 +112,7 @@ module.exports = {
   Permission,
   StudentInfo,
   Menu,
+  Calendar,
+  ClassInfo,
+  Word,
 };

@@ -88,13 +88,11 @@ exports.teachSalary = async (req, res) => {
 
     const teacherStats = await Promise.all(
       teachers.map(async (teacher) => {
-        // Fetch lessons and include ClassType to access class type names
         const lessons = await Lesson.findAll({
           where: { teacher_id: teacher.id, ...whereClause },
           include: [{ model: ClassType, attributes: ["name"] }],
         });
 
-        // Initialize an object to store salary and class count per class type
         const classTypeStats = {};
 
         for (const lesson of lessons) {
@@ -108,7 +106,11 @@ exports.teachSalary = async (req, res) => {
             },
           });
 
-          if (classTypeName === "No Show") {
+          let rateAmount = 0;
+
+          // Handle different scenarios
+          if (classTypeName === "No Show Student") {
+            // For student no-show, use regular lesson rate
             const regularClassType = await ClassType.findOne({
               where: { name: "Regular-Lesson" },
             });
@@ -119,8 +121,10 @@ exports.teachSalary = async (req, res) => {
                   class_type_id: regularClassType.id,
                 },
               });
+              rateAmount = rate ? parseFloat(rate.rate) : 0;
             }
           } else if (classTypeName === "Trial-Lesson No Show") {
+            // For trial lesson no-show, use trial lesson rate
             const trialClassType = await ClassType.findOne({
               where: { name: "Trial-Lesson" },
             });
@@ -131,10 +135,36 @@ exports.teachSalary = async (req, res) => {
                   class_type_id: trialClassType.id,
                 },
               });
+              rateAmount = rate ? parseFloat(rate.rate) : 0;
             }
-          }
+          } else if (classTypeName === "No Show Teacher") {
+            // For teacher no-show, use negative regular lesson rate
+            const regularClassType = await ClassType.findOne({
+              where: { name: "Regular-Lesson" },
+            });
+            if (regularClassType) {
+              rate = await TeacherRate.findOne({
+                where: {
+                  teacher_id: teacher.id,
+                  class_type_id: regularClassType.id,
+                },
+              });
+              rateAmount = rate ? parseFloat(rate.rate) * -1 : 0;
 
-          const rateAmount = rate ? parseFloat(rate.rate) : 0;
+              // Create payment record for teacher no-show
+              await Payment.create({
+                student_id: lesson.student_id,
+                class_type_id: lesson.class_type_id,
+                amount: 0,
+                num_lessons: 1,
+                payment_method: "No Show Teacher",
+                payment_date: lesson.lesson_date,
+              });
+            }
+          } else {
+            // For all other class types, use their normal rates
+            rateAmount = rate ? parseFloat(rate.rate) : 0;
+          }
 
           if (!classTypeStats[classTypeName]) {
             classTypeStats[classTypeName] = {
@@ -186,13 +216,11 @@ exports.teachEachSalary = async (req, res) => {
 
     const teacherStats = await Promise.all(
       teachers.map(async (teacher) => {
-        // Fetch lessons and include ClassType to access class type names
         const lessons = await Lesson.findAll({
           where: { teacher_id: teacher.id, ...whereClause },
           include: [{ model: ClassType, attributes: ["name"] }],
         });
 
-        // Initialize an object to store salary and class count per class type
         const classTypeStats = {};
 
         for (const lesson of lessons) {
@@ -206,7 +234,11 @@ exports.teachEachSalary = async (req, res) => {
             },
           });
 
-          if (classTypeName === "No Show") {
+          let rateAmount = 0;
+
+          // Handle different scenarios
+          if (classTypeName === "No Show Student") {
+            // For student no-show, use regular lesson rate
             const regularClassType = await ClassType.findOne({
               where: { name: "Regular-Lesson" },
             });
@@ -217,8 +249,10 @@ exports.teachEachSalary = async (req, res) => {
                   class_type_id: regularClassType.id,
                 },
               });
+              rateAmount = rate ? parseFloat(rate.rate) : 0;
             }
           } else if (classTypeName === "Trial-Lesson No Show") {
+            // For trial lesson no-show, use trial lesson rate
             const trialClassType = await ClassType.findOne({
               where: { name: "Trial-Lesson" },
             });
@@ -229,10 +263,36 @@ exports.teachEachSalary = async (req, res) => {
                   class_type_id: trialClassType.id,
                 },
               });
+              rateAmount = rate ? parseFloat(rate.rate) : 0;
             }
-          }
+          } else if (classTypeName === "No Show Teacher") {
+            // For teacher no-show, use negative regular lesson rate
+            const regularClassType = await ClassType.findOne({
+              where: { name: "Regular-Lesson" },
+            });
+            if (regularClassType) {
+              rate = await TeacherRate.findOne({
+                where: {
+                  teacher_id: teacher.id,
+                  class_type_id: regularClassType.id,
+                },
+              });
+              rateAmount = rate ? parseFloat(rate.rate) * -1 : 0;
 
-          const rateAmount = rate ? parseFloat(rate.rate) : 0;
+              // Create payment record for teacher no-show
+              await Payment.create({
+                student_id: lesson.student_id,
+                class_type_id: lesson.class_type_id,
+                amount: 0,
+                num_lessons: 1,
+                payment_method: "No Show Teacher",
+                payment_date: lesson.lesson_date,
+              });
+            }
+          } else {
+            // For all other class types, use their normal rates
+            rateAmount = rate ? parseFloat(rate.rate) : 0;
+          }
 
           if (!classTypeStats[classTypeName]) {
             classTypeStats[classTypeName] = {

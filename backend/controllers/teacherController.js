@@ -186,6 +186,37 @@ exports.getTeacherStudents = async (req, res) => {
   try {
     const teacherId = req.params.teacherId;
 
+    // Get students who have lessons with multiple teachers
+    const studentsWithMultipleTeachers = await User.findAll({
+      where: { role_id: user_role.student },
+      include: [
+        {
+          model: Lesson,
+          as: "StudentLessons",
+          attributes: [],
+          required: true,
+        },
+      ],
+      attributes: [
+        "id",
+        "first_name",
+        "last_name",
+        [
+          Sequelize.fn(
+            "COUNT",
+            Sequelize.literal("DISTINCT StudentLessons.teacher_id")
+          ),
+          "teacher_count",
+        ],
+        [
+          Sequelize.fn("COUNT", Sequelize.col("StudentLessons.id")),
+          "class_count",
+        ],
+      ],
+      having: Sequelize.literal("teacher_count >= 2"),
+      group: ["user.id", "user.first_name", "user.last_name"],
+    });
+
     // Get students who have had lessons with this teacher
     // Count the lessons and exclude those with only trial lessons
     const students = await User.findAll({
@@ -238,25 +269,35 @@ exports.getTeacherStudents = async (req, res) => {
       group: ["user.id", "user.first_name", "user.last_name"],
     });
 
-    // Combine and deduplicate students, summing up class counts
+    // Combine all students
     const studentMap = new Map();
 
-    students.forEach((student) => {
+    // Add students with multiple teachers first
+    studentsWithMultipleTeachers.forEach((student) => {
       studentMap.set(student.id, {
         ...student.toJSON(),
         class_count: parseInt(student.get("class_count")),
       });
     });
 
-    studentsWithSchedule.forEach((student) => {
-      if (studentMap.has(student.id)) {
-        // Student exists in both arrays, keep the lesson count
-        return;
+    // Add students with current teacher
+    students.forEach((student) => {
+      if (!studentMap.has(student.id)) {
+        studentMap.set(student.id, {
+          ...student.toJSON(),
+          class_count: parseInt(student.get("class_count")),
+        });
       }
-      studentMap.set(student.id, {
-        ...student.toJSON(),
-        class_count: 0, // New student with only scheduled classes
-      });
+    });
+
+    // Add students with scheduled classes
+    studentsWithSchedule.forEach((student) => {
+      if (!studentMap.has(student.id)) {
+        studentMap.set(student.id, {
+          ...student.toJSON(),
+          class_count: 0,
+        });
+      }
     });
 
     const uniqueStudents = Array.from(studentMap.values());

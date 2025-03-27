@@ -105,7 +105,7 @@ exports.forgotPassword = async (req, res) => {
       resetTokenExpiry: new Date(Date.now() + 10 * 60 * 1000),
     });
 
-    const resetLink = `https://amdream.us/reset-password?token=${resetToken}`;
+    const resetLink = `https://account.amdream.us/reset-password?token=${resetToken}`;
     sgMail.send({
       to: user.email,
       from: key.sendgrid.sender_email,

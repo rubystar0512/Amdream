@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Button, Modal, Label, TextInput, Select } from "flowbite-react";
+import { Card, Button, Modal, Label, TextInput } from "flowbite-react";
 import { Table, TableColumnsType } from "antd";
 import api from "../../config";
 import { toast } from "react-toastify";
@@ -18,18 +18,15 @@ interface Word {
   student_id: number;
 }
 
-interface Student {
-  id: string;
-  first_name: string;
-  last_name: string;
-}
-
-const Words: React.FC = () => {
+const Words: React.FC<{ studentId: string; studentName: string }> = ({
+  studentId,
+  studentName,
+}) => {
   const navigate = useNavigate();
   const { permissions, loading_1: permissionsLoading } =
     usePermissions("/class/words");
   const [words, setWords] = useState<Word[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
+  // const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
@@ -41,23 +38,27 @@ const Words: React.FC = () => {
 
   useEffect(() => {
     if (!permissionsLoading) {
-      if (!permissions.read) {
-        navigate("/login");
-        toast.error("You don't have permission to view this page", {
-          theme: "dark",
-        });
-      } else {
-        if (user?.role === "teacher") {
-          fetchStudents();
-        } else if (user?.role === "student") {
-          // If student, directly fetch their words
-          fetchWords(user.id);
+      if (user?.role != "teacher") {
+        if (!permissions.read) {
+          navigate("/login");
+          toast.error("You don't have permission to view this page", {
+            theme: "dark",
+          });
+        } else {
+          if (user?.role === "student") {
+            fetchWords(user.id);
+          }
         }
       }
     }
   }, [permissions, navigate, permissionsLoading, user]);
 
   // Fetch words when student is selected
+
+  useEffect(() => {
+    if (studentId != "") setSelectedStudent(studentId);
+  }, [studentId, studentName]);
+
   useEffect(() => {
     if (selectedStudent) {
       fetchWords(selectedStudent);
@@ -66,23 +67,20 @@ const Words: React.FC = () => {
     }
   }, [selectedStudent]);
 
-  const fetchStudents = async () => {
-    try {
-      const response = await api.get(`/teachers/${user?.id}/students`);
-      setStudents(response.data || []);
-    } catch (error: any) {
-      console.error("Error fetching students:", error);
-      handleApiError(error);
-    }
-  };
+  // const fetchStudents = async () => {
+  //   try {
+  //     const response = await api.get(`/teachers/${user?.id}/students`);
+  //     setStudents(response.data || []);
+  //   } catch (error: any) {
+  //     console.error("Error fetching students:", error);
+  //     handleApiError(error);
+  //   }
+  // };
 
   const fetchWords = async (studentId: string) => {
     try {
       setLoading(true);
-      const url =
-        user?.role === "teacher"
-          ? `/words/${studentId}?teacher_id=${user.id}`
-          : `/words/${studentId}`;
+      const url = `/words/${studentId}`;
 
       const response = await api.get(url);
       setWords(response.data || []);
@@ -146,13 +144,13 @@ const Words: React.FC = () => {
       title: "English",
       dataIndex: "english_word",
       key: "english",
-      sorter: (a, b) => a.english.localeCompare(b.english),
+      sorter: (a, b) => a.english_word.localeCompare(b.english_word),
     },
     {
       title: "Translation",
       dataIndex: "translation_word",
       key: "translation",
-      sorter: (a, b) => a.translation.localeCompare(b.translation),
+      sorter: (a, b) => a.translation_word.localeCompare(b.translation_word),
     },
   ];
 
@@ -166,42 +164,18 @@ const Words: React.FC = () => {
         <div className="mb-4 flex items-center gap-4">
           {user?.role === "teacher" && (
             <>
-              <div className="w-64">
-                <Select
-                  id="student"
-                  required
-                  value={selectedStudent}
-                  onChange={(e) => setSelectedStudent(e.target.value)}
-                >
-                  <option value="">Select Student</option>
-                  {students
-                    ?.sort((a, b) =>
-                      `${a.first_name} ${a.last_name}`.localeCompare(
-                        `${b.first_name} ${b.last_name}`,
-                      ),
-                    )
-                    .map((student) => (
-                      <option key={student.id} value={student.id}>
-                        {student.first_name} {student.last_name}
-                      </option>
-                    ))}
-                </Select>
-              </div>
-
-              {permissions.create && (
-                <button
-                  className={`inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium ${
-                    !selectedStudent
-                      ? "cursor-not-allowed bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500"
-                      : "bg-white text-gray-500 hover:bg-gray-100 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
-                  } focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:focus:ring-gray-700`}
-                  type="button"
-                  onClick={() => setOpenModal(true)}
-                  disabled={!selectedStudent}
-                >
-                  Add new word
-                </button>
-              )}
+              <button
+                className={`inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium ${
+                  !selectedStudent
+                    ? "cursor-not-allowed bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500"
+                    : "bg-white text-gray-500 hover:bg-gray-100 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
+                } focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:focus:ring-gray-700`}
+                type="button"
+                onClick={() => setOpenModal(true)}
+                disabled={!selectedStudent}
+              >
+                Add new word
+              </button>
             </>
           )}
         </div>
@@ -226,6 +200,7 @@ const Words: React.FC = () => {
         size="md"
         onClose={() => setOpenModal(false)}
         popup
+        style={{ zIndex: "1000" }}
       >
         <Modal.Header />
         <Modal.Body>

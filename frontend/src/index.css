@@ -286,3 +286,12 @@ textarea::placeholder {
 .rbc-today {
   background-color: #b4b7bd !important;
 }
+
+.ant-drawer-content {
+  background-color: #1a222d !important;
+  color: white;
+}
+
+.ant-drawer-close {
+  color: white !important;
+}

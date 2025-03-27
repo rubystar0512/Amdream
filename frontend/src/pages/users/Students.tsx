@@ -7,7 +7,13 @@ import {
   TextInput,
   Textarea,
 } from "flowbite-react";
-import { Table, TableColumnsType, Button as AntButton, Space } from "antd";
+import {
+  Table,
+  TableColumnsType,
+  Button as AntButton,
+  Space,
+  Drawer,
+} from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import api from "../../config";
 import { toast } from "react-toastify";
@@ -15,6 +21,9 @@ import { useNavigate } from "react-router-dom";
 import { usePermissions } from "../../hooks/usePermission";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { useAuth } from "../../hooks/useAuth";
+
+import ClassInfo from "../class/ClassInfo";
+import Words from "../class/Words";
 
 export default function Students() {
   const navigate = useNavigate();
@@ -32,6 +41,12 @@ export default function Students() {
   const { user } = useAuth();
 
   const [loading, setLoading] = useState(false);
+  const [openDrawer, setOpenDrawer] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
+    null,
+  );
+
+  const [selectedName, setSelectedName] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading_1) {
@@ -266,16 +281,44 @@ export default function Students() {
     <Card className="max-h-[80vh] overflow-auto">
       <div className="overflow-x-auto shadow-md sm:rounded-lg">
         {user?.role === "teacher" ? (
-          <Table
-            className="custom-table"
-            style={{ width: "70vw" }}
-            columns={simpleColumns}
-            dataSource={specifiedStudentData}
-            loading={loading}
-            pagination={false}
-            scroll={{ y: "50vh" }}
-            sticky
-          />
+          <>
+            <Table
+              className="custom-table"
+              style={{ width: "70vw" }}
+              columns={simpleColumns}
+              dataSource={specifiedStudentData}
+              loading={loading}
+              pagination={false}
+              scroll={{ y: "50vh" }}
+              sticky
+              onRow={(record) => ({
+                onClick: () => {
+                  setSelectedStudentId(record.id);
+                  setOpenDrawer(true);
+                  setSelectedName(record.first_name + " " + record.last_name);
+                },
+                style: { cursor: "pointer" },
+              })}
+            />
+            <Drawer
+              title={`Details of ${selectedName}`}
+              placement="right"
+              onClose={() => setOpenDrawer(false)}
+              open={openDrawer}
+              width={"80vw"}
+            >
+              <div className="flex flex-col gap-4">
+                <ClassInfo
+                  studentId={selectedStudentId || ""}
+                  studentName={selectedName || ""}
+                />
+                <Words
+                  studentId={selectedStudentId || ""}
+                  studentName={selectedName || ""}
+                />
+              </div>
+            </Drawer>
+          </>
         ) : (
           <>
             {permissions.create && (

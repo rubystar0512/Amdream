@@ -6,7 +6,6 @@ import {
   Label,
   TextInput,
   Textarea,
-  Select,
 } from "flowbite-react";
 import { Table, TableColumnsType } from "antd";
 import api from "../../config";
@@ -28,21 +27,16 @@ interface ClassInfo {
   teacher_id: number;
 }
 
-interface Student {
-  id: string;
-  first_name: string;
-  last_name: string;
-  class_count: number;
-}
-
-const ClassInfo: React.FC = () => {
+const ClassInfo: React.FC<{ studentId: string; studentName: string }> = ({
+  studentId,
+  studentName,
+}) => {
   const navigate = useNavigate();
   const { permissions, loading_1: permissionsLoading } =
     usePermissions("/class/info");
   const [classInfos, setClassInfos] = useState<ClassInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
-  const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string>("");
   const { user } = useAuth();
 
@@ -55,22 +49,27 @@ const ClassInfo: React.FC = () => {
 
   useEffect(() => {
     if (!permissionsLoading) {
-      if (!permissions.read) {
-        navigate("/login");
-        toast.error("You don't have permission to view this page", {
-          theme: "dark",
-        });
-      } else {
-        if (user?.role === "teacher") {
-          fetchStudents();
-        } else if (user?.role === "student") {
-          fetchClassInfo(user.id);
+      if (user?.role != "teacher") {
+        if (!permissions.read) {
+          navigate("/login");
+          toast.error("You don't have permission to view this page", {
+            theme: "dark",
+          });
+        } else {
+          if (user?.role === "student") {
+            fetchClassInfo(user.id);
+          }
         }
       }
     }
   }, [permissions, navigate, permissionsLoading, user]);
 
   // Fetch class info when student is selected
+
+  useEffect(() => {
+    if (studentId != "") setSelectedStudent(studentId);
+  }, [studentId, studentName]);
+
   useEffect(() => {
     if (selectedStudent) {
       fetchClassInfo(selectedStudent);
@@ -79,23 +78,20 @@ const ClassInfo: React.FC = () => {
     }
   }, [selectedStudent]);
 
-  const fetchStudents = async () => {
-    try {
-      const response = await api.get(`/teachers/${user?.id}/students`);
-      setStudents(response.data || []);
-    } catch (error: any) {
-      console.error("Error fetching students:", error);
-      handleApiError(error);
-    }
-  };
+  // const fetchStudents = async () => {
+  //   try {
+  //     const response = await api.get(`/teachers/${user?.id}/students`);
+  //     setStudents(response.data || []);
+  //   } catch (error: any) {
+  //     console.error("Error fetching students:", error);
+  //     handleApiError(error);
+  //   }
+  // };
 
   const fetchClassInfo = async (studentId: string) => {
     try {
       setLoading(true);
-      const url =
-        user?.role === "teacher"
-          ? `/class-info/${studentId}?teacher_id=${user.id}`
-          : `/class-info/${studentId}`;
+      const url = `/class-info/${studentId}`;
 
       const response = await api.get(url);
       setClassInfos(response.data || []);
@@ -196,29 +192,7 @@ const ClassInfo: React.FC = () => {
         <div className="mb-4 flex items-center gap-4">
           {user?.role === "teacher" && (
             <>
-              <div className="w-64">
-                <Select
-                  id="student"
-                  required
-                  value={selectedStudent}
-                  onChange={(e) => setSelectedStudent(e.target.value)}
-                >
-                  <option value="">Select Student</option>
-                  {students
-                    ?.sort((a, b) =>
-                      `${a.first_name} ${a.last_name}`.localeCompare(
-                        `${b.first_name} ${b.last_name}`,
-                      ),
-                    )
-                    .map((student) => (
-                      <option key={student.id} value={student.id}>
-                        {student.first_name} {student.last_name}
-                      </option>
-                    ))}
-                </Select>
-              </div>
-
-              {permissions.create && (
+              {
                 <button
                   className={`inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium ${
                     !selectedStudent
@@ -231,7 +205,7 @@ const ClassInfo: React.FC = () => {
                 >
                   Add new class info
                 </button>
-              )}
+              }
             </>
           )}
         </div>
@@ -255,6 +229,7 @@ const ClassInfo: React.FC = () => {
         size="md"
         onClose={() => setOpenModal(false)}
         popup
+        style={{ zIndex: "1000" }}
       >
         <Modal.Header />
         <Modal.Body>

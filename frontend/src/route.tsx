@@ -91,7 +91,7 @@ const routes = createBrowserRouter([
         path: "/class/info",
         element: (
           <Suspense fallback={<LoadingSpinner />}>
-            <ClassInfoLazy />
+            <ClassInfoLazy studentId={""} studentName={""} />
           </Suspense>
         ),
       },
@@ -99,7 +99,7 @@ const routes = createBrowserRouter([
         path: "/class/words",
         element: (
           <Suspense fallback={<LoadingSpinner />}>
-            <WordsLazy />
+            <WordsLazy studentId={""} studentName={""} />
           </Suspense>
         ),
       },

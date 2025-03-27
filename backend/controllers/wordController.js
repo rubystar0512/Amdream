@@ -3,12 +3,17 @@ const { user_role } = require("../configs/key");
 
 exports.getAllWords = async (req, res) => {
   try {
-    const studentId = req.params.studentId;
-    const teacherId = req.query?.teacher_id;
+    const studentId = req?.params?.studentId;
+    const teacherId = req?.query?.teacher_id;
 
     const whereClause = { student_id: studentId };
     if (teacherId) {
-      whereClause.teacher_id = teacherId;
+      const temp = await Word.findAll({
+        where: { teacher_id: teacherId },
+      });
+      if (temp.length > 0) {
+        whereClause.teacher_id = teacherId;
+      }
     }
 
     const words = await Word.findAll({

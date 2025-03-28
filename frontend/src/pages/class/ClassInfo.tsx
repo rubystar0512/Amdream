@@ -16,6 +16,9 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 import { useAuth } from "../../hooks/useAuth";
 import moment from "moment";
 
+import { Button as AntButton } from "antd";
+import { EditOutlined } from "@ant-design/icons";
+
 interface ClassInfo {
   id: number;
   date: string;
@@ -25,6 +28,11 @@ interface ClassInfo {
   notes: string;
   student_id: number;
   teacher_id: number;
+  Teacher: {
+    id: number;
+    first_name: string;
+    last_name: string;
+  };
 }
 
 const ClassInfo: React.FC<{ studentId: string; studentName: string }> = ({
@@ -46,6 +54,8 @@ const ClassInfo: React.FC<{ studentId: string; studentName: string }> = ({
   const [canDo, setCanDo] = useState("");
   const [notes, setNotes] = useState("");
   const [date, setDate] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<ClassInfo | null>(null);
 
   useEffect(() => {
     if (!permissionsLoading) {
@@ -130,6 +140,44 @@ const ClassInfo: React.FC<{ studentId: string; studentName: string }> = ({
     }
   };
 
+  const handleEdit = (record: ClassInfo) => {
+    setEditingRecord(record);
+    setCourse(record.course);
+    setUnit(record.unit);
+    setCanDo(record.can_do);
+    setNotes(record.notes || "");
+    setDate(moment(record.date).format("YYYY-MM-DD"));
+    setOpenModal(true);
+    setIsEditing(true);
+  };
+
+  const updateClassInfo = async () => {
+    if (!course || !unit || !canDo || !date) {
+      toast.error("Please fill in all required fields.", { theme: "dark" });
+      return;
+    }
+
+    try {
+      const response = await api.put(`/class-info/${editingRecord?.id}`, {
+        date,
+        course,
+        unit,
+        can_do: canDo,
+        notes,
+        teacher_id: user?.id,
+      });
+
+      setClassInfos(response.data.classInfo);
+      resetForm();
+      setOpenModal(false);
+      setIsEditing(false);
+      toast.success("Class info updated successfully!", { theme: "dark" });
+    } catch (error: any) {
+      console.error("Error updating class info:", error);
+      handleApiError(error);
+    }
+  };
+
   const resetForm = () => {
     setCourse("");
     setUnit("");
@@ -159,6 +207,14 @@ const ClassInfo: React.FC<{ studentId: string; studentName: string }> = ({
       },
     },
     {
+      title: "Teacher",
+      dataIndex: "Teacher",
+      key: "Teacher",
+      render: (obj: any) => {
+        return obj.first_name + " " + obj.last_name;
+      },
+    },
+    {
       title: "Course",
       dataIndex: "course",
       key: "course",
@@ -179,6 +235,23 @@ const ClassInfo: React.FC<{ studentId: string; studentName: string }> = ({
       title: "Notes",
       dataIndex: "notes",
       key: "notes",
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_: any, record: any) => {
+        if (user?.id === record?.Teacher?.id) {
+          return (
+            <AntButton
+              type="primary"
+              icon={<EditOutlined />}
+              size="small"
+              onClick={() => handleEdit(record)}
+            />
+          );
+        }
+        return null;
+      },
     },
   ];
 
@@ -227,7 +300,11 @@ const ClassInfo: React.FC<{ studentId: string; studentName: string }> = ({
       <Modal
         show={openModal}
         size="md"
-        onClose={() => setOpenModal(false)}
+        onClose={() => {
+          setOpenModal(false);
+          setIsEditing(false);
+          resetForm();
+        }}
         popup
         style={{ zIndex: "1000" }}
       >
@@ -235,7 +312,7 @@ const ClassInfo: React.FC<{ studentId: string; studentName: string }> = ({
         <Modal.Body>
           <div className="space-y-6">
             <h3 className="text-xl font-medium text-gray-900 dark:text-white">
-              Add new class info
+              {isEditing ? "Edit class info" : "Add new class info"}
             </h3>
 
             <div>
@@ -293,12 +370,19 @@ const ClassInfo: React.FC<{ studentId: string; studentName: string }> = ({
             </div>
 
             <div className="flex flex-auto">
-              <Button className="flex-none" onClick={addNewClassInfo}>
-                Add
+              <Button
+                className="flex-none"
+                onClick={isEditing ? updateClassInfo : addNewClassInfo}
+              >
+                {isEditing ? "Update" : "Add"}
               </Button>
               <Button
                 className="ml-2 flex-none"
-                onClick={() => setOpenModal(false)}
+                onClick={() => {
+                  setOpenModal(false);
+                  setIsEditing(false);
+                  resetForm();
+                }}
               >
                 Cancel
               </Button>

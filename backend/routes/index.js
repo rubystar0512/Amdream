@@ -121,7 +121,7 @@ router.get("/menus", userController.getMenus);
 // Word Routes
 router.get("/words/:studentId", authMiddleware, wordController.getAllWords);
 router.post("/words", authMiddleware, wordController.createWord);
-
+router.put("/words/:id", authMiddleware, wordController.updateWord);
 // Class Info Routes
 router.get(
   "/class-info/:studentId",
@@ -129,5 +129,10 @@ router.get(
   classInfoController.getAllClassInfo
 );
 router.post("/class-info", authMiddleware, classInfoController.createClassInfo);
+router.put(
+  "/class-info/:id",
+  authMiddleware,
+  classInfoController.updateClassInfo
+);
 
 module.exports = router;

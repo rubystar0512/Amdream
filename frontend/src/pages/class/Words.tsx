@@ -8,6 +8,8 @@ import { usePermissions } from "../../hooks/usePermission";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { useAuth } from "../../hooks/useAuth";
 import moment from "moment";
+import { Button as AntButton } from "antd";
+import { EditOutlined } from "@ant-design/icons";
 
 interface Word {
   id: number;
@@ -35,6 +37,8 @@ const Words: React.FC<{ studentId: string; studentName: string }> = ({
   // Form states
   const [english, setEnglish] = useState("");
   const [translation, setTranslation] = useState("");
+  const [editingRecord, setEditingRecord] = useState<Word | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     if (!permissionsLoading) {
@@ -141,6 +145,14 @@ const Words: React.FC<{ studentId: string; studentName: string }> = ({
       },
     },
     {
+      title: "Teacher",
+      dataIndex: "Teacher",
+      key: "Teacher",
+      render: (obj: any) => {
+        return obj.first_name + " " + obj.last_name;
+      },
+    },
+    {
       title: "English",
       dataIndex: "english_word",
       key: "english",
@@ -152,7 +164,67 @@ const Words: React.FC<{ studentId: string; studentName: string }> = ({
       key: "translation",
       sorter: (a, b) => a.translation_word.localeCompare(b.translation_word),
     },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, record) => {
+        if (user?.id === record.Teacher.id) {
+          return (
+            <div className="flex gap-2">
+              <AntButton
+                type="primary"
+                icon={<EditOutlined />}
+                size="small"
+                onClick={() => handleEdit(record)}
+              />
+            </div>
+          );
+        }
+        return null;
+      },
+    },
   ];
+
+  const handleEdit = (record: any) => {
+    setEditingRecord(record);
+    setEnglish(record.english_word);
+    setTranslation(record.translation_word);
+    setOpenModal(true);
+    setIsEditing(true);
+  };
+
+  const updateWord = async () => {
+    if (!english || !translation) {
+      toast.error("Both English word and translation are required.", {
+        theme: "dark",
+      });
+      return;
+    }
+
+    try {
+      const response = await api.put(`/words/${editingRecord?.id}`, {
+        english_word: english,
+        translation_word: translation,
+        teacher_id: user?.id,
+      });
+
+      setWords(response.data.words);
+      resetForm();
+      setOpenModal(false);
+      setIsEditing(false);
+      toast.success("Word updated successfully!", { theme: "dark" });
+    } catch (error: any) {
+      console.error("Error updating word:", error);
+      handleApiError(error);
+    }
+  };
+
+  const resetForm = () => {
+    setEnglish("");
+    setTranslation("");
+    setIsEditing(false);
+    setEditingRecord(null);
+  };
 
   if (permissionsLoading) {
     return <LoadingSpinner />;
@@ -198,7 +270,10 @@ const Words: React.FC<{ studentId: string; studentName: string }> = ({
       <Modal
         show={openModal}
         size="md"
-        onClose={() => setOpenModal(false)}
+        onClose={() => {
+          setOpenModal(false);
+          resetForm();
+        }}
         popup
         style={{ zIndex: "1000" }}
       >
@@ -206,7 +281,7 @@ const Words: React.FC<{ studentId: string; studentName: string }> = ({
         <Modal.Body>
           <div className="space-y-6">
             <h3 className="text-xl font-medium text-gray-900 dark:text-white">
-              Add new word
+              {isEditing ? "Edit word" : "Add new word"}
             </h3>
 
             <div>
@@ -232,12 +307,18 @@ const Words: React.FC<{ studentId: string; studentName: string }> = ({
             </div>
 
             <div className="flex flex-auto">
-              <Button className="flex-none" onClick={addNewWord}>
-                Add
+              <Button
+                className="flex-none"
+                onClick={isEditing ? updateWord : addNewWord}
+              >
+                {isEditing ? "Update" : "Add"}
               </Button>
               <Button
                 className="ml-2 flex-none"
-                onClick={() => setOpenModal(false)}
+                onClick={() => {
+                  setOpenModal(false);
+                  resetForm();
+                }}
               >
                 Cancel
               </Button>

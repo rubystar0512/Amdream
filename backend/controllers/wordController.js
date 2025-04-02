@@ -49,9 +49,30 @@ exports.createWord = async (req, res) => {
       teacher_id,
     });
 
-    // Fetch updated words list
+    const whereClause = { student_id: student_id };
+    if (teacher_id) {
+      const temp = await Word.findAll({
+        where: { teacher_id: teacher_id },
+      });
+      if (temp.length > 0) {
+        whereClause.teacher_id = teacher_id;
+      }
+    }
+
     const words = await Word.findAll({
-      where: { student_id },
+      where: whereClause,
+      include: [
+        {
+          model: User,
+          as: "Student",
+          attributes: ["id", "first_name", "last_name"],
+        },
+        {
+          model: User,
+          as: "Teacher",
+          attributes: ["id", "first_name", "last_name"],
+        },
+      ],
       order: [["createdAt", "DESC"]],
     });
 

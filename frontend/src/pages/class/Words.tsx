@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Card, Button, Modal, Label, TextInput } from "flowbite-react";
-import { Table, TableColumnsType } from "antd";
+import { Button, Modal, Label, TextInput } from "flowbite-react";
+import { Card, Table, TableColumnsType } from "antd";
 import api from "../../config";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +10,7 @@ import { useAuth } from "../../hooks/useAuth";
 import moment from "moment";
 import { Button as AntButton } from "antd";
 import { EditOutlined } from "@ant-design/icons";
+import { motion } from "framer-motion";
 
 interface Word {
   id: number;
@@ -141,7 +142,11 @@ const Words: React.FC<{ studentId: string; studentName: string }> = ({
       key: "date",
       sorter: (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
       render: (text: string) => {
-        return moment(text).format("DD/MM/YYYY");
+        return (
+          <span className="font-medium text-gray-900 dark:text-white">
+            {moment(text).format("DD/MM/YYYY")}
+          </span>
+        );
       },
     },
     {
@@ -149,20 +154,38 @@ const Words: React.FC<{ studentId: string; studentName: string }> = ({
       dataIndex: "Teacher",
       key: "Teacher",
       render: (obj: any) => {
-        return obj.first_name + " " + obj.last_name;
+        return (
+          <span className="dark:text-green font-medium text-green-400">
+            {obj.first_name + " " + obj.last_name}
+          </span>
+        );
       },
     },
     {
       title: "English",
       dataIndex: "english_word",
       key: "english",
+      fixed: "left",
       sorter: (a, b) => a.english_word.localeCompare(b.english_word),
+      render: (obj: any) => {
+        return (
+          <span className="dark:text-red font-medium text-red-400">{obj}</span>
+        );
+      },
     },
     {
       title: "Translation",
       dataIndex: "translation_word",
+      fixed: "left",
       key: "translation",
       sorter: (a, b) => a.translation_word.localeCompare(b.translation_word),
+      render: (obj: any) => {
+        return (
+          <span className="dark:text-blue font-medium text-blue-400">
+            {obj}
+          </span>
+        );
+      },
     },
     {
       title: "Actions",
@@ -230,41 +253,84 @@ const Words: React.FC<{ studentId: string; studentName: string }> = ({
     return <LoadingSpinner />;
   }
 
-  return (
-    <Card className="max-h-[80vh] w-[78vw] overflow-auto">
-      <div className="overflow-x-auto shadow-md sm:rounded-lg">
-        <div className="mb-4 flex items-center gap-4">
-          {user?.role === "teacher" && (
-            <>
-              <button
-                className={`inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium ${
-                  !selectedStudent
-                    ? "cursor-not-allowed bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500"
-                    : "bg-white text-gray-500 hover:bg-gray-100 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
-                } focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:focus:ring-gray-700`}
-                type="button"
-                onClick={() => setOpenModal(true)}
-                disabled={!selectedStudent}
-              >
-                Add new word
-              </button>
-            </>
-          )}
-        </div>
+  const cardStyles = {
+    header: {
+      background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)",
+      borderRadius: "12px 12px 0 0",
+      padding: "12px 16px", // Reduced padding for mobile
+      border: "none",
+      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+      "@media (min-width: 640px)": {
+        padding: "16px 24px",
+      },
+    },
+    body: {
+      padding: "10px", // Reduced padding for mobile
+      borderRadius: "0 0 12px 12px",
+      backgroundColor: "rgba(255, 255, 255, 0.1)",
+      height: "auto", // Changed from fixed height
+      maxHeight: "60vh",
+      "@media (min-width: 640px)": {
+        padding: "20px",
+      },
+    },
+  };
 
-        {/* Show table if student is selected (for teachers) or always (for students) */}
-        {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="z-0 flex w-full flex-col gap-4 overflow-y-auto p-3 md:p-6"
+    >
+      <Card
+        title={
+          <div className="flex items-center gap-3">
+            <span className="text-lg font-semibold text-white">Words</span>
+            <div className="h-2 w-2 animate-pulse rounded-full bg-green-400" />
+          </div>
+        }
+        className="overflow-hidden rounded-xl border-0 shadow-lg transition-shadow hover:shadow-xl"
+        headStyle={cardStyles.header}
+        bodyStyle={cardStyles.body}
+        extra={
+          <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row">
+            {user?.role === "teacher" && (
+              <div className="xs:flex-row flex flex-col gap-2">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-sm font-medium ${
+                    !selectedStudent
+                      ? "cursor-not-allowed bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500"
+                      : "bg-gradient-to-r from-blue-900 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
+                  } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
+                  onClick={() => setOpenModal(true)}
+                  disabled={!selectedStudent}
+                >
+                  + Add New Word
+                </motion.button>
+              </div>
+            )}
+          </div>
+        }
+      >
+        <div className="custom-table overflow-hidden rounded-lg shadow-md">
           <Table
+            style={{ width: "100%" }}
             columns={columns}
             dataSource={words}
             pagination={false}
-            loading={loading}
+            loading={{
+              spinning: loading,
+              size: "large",
+            }}
+            scroll={{ x: "max-content", y: "calc(65vh - 200px)" }}
+            size="large"
             className="custom-table"
-            scroll={{ y: "50vh" }}
-            sticky
           />
-        }
-      </div>
+        </div>
+      </Card>
 
       {/* Add Word Modal */}
       <Modal
@@ -277,11 +343,11 @@ const Words: React.FC<{ studentId: string; studentName: string }> = ({
         popup
         style={{ zIndex: "1000" }}
       >
-        <Modal.Header />
+        <Modal.Header className="border-b border-gray-200 dark:border-gray-700" />
         <Modal.Body>
-          <div className="space-y-6">
+          <div className="space-y-4">
             <h3 className="text-xl font-medium text-gray-900 dark:text-white">
-              {isEditing ? "Edit word" : "Add new word"}
+              {isEditing ? "Edit Word" : "Add New Word"}
             </h3>
 
             <div>
@@ -292,6 +358,7 @@ const Words: React.FC<{ studentId: string; studentName: string }> = ({
                 required
                 value={english}
                 onChange={(e) => setEnglish(e.target.value)}
+                className="w-full rounded-lg"
               />
             </div>
 
@@ -303,18 +370,21 @@ const Words: React.FC<{ studentId: string; studentName: string }> = ({
                 required
                 value={translation}
                 onChange={(e) => setTranslation(e.target.value)}
+                className="w-full rounded-lg"
               />
             </div>
 
-            <div className="flex flex-auto">
+            <div className="xs:flex-row flex flex-col gap-2 pt-4">
               <Button
-                className="flex-none"
+                className="xs:w-auto w-full"
+                gradientDuoTone="purpleToBlue"
                 onClick={isEditing ? updateWord : addNewWord}
               >
                 {isEditing ? "Update" : "Add"}
               </Button>
               <Button
-                className="ml-2 flex-none"
+                className="xs:w-auto w-full"
+                color="gray"
                 onClick={() => {
                   setOpenModal(false);
                   resetForm();
@@ -326,7 +396,7 @@ const Words: React.FC<{ studentId: string; studentName: string }> = ({
           </div>
         </Modal.Body>
       </Modal>
-    </Card>
+    </motion.div>
   );
 };
 

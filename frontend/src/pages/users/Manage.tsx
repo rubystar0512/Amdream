@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Card, Button, Modal, Label, Select } from "flowbite-react";
-import { Table, TableColumnsType, Button as AntButton, Space, Switch } from "antd";
+import { Button, Modal, Label, Select } from "flowbite-react";
+import {
+  Card,
+  Table,
+  TableColumnsType,
+  Button as AntButton,
+  Space,
+  Switch,
+} from "antd";
 import {
   EditOutlined,
   DeleteOutlined,
@@ -12,6 +19,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { usePermissions } from "../../hooks/usePermission";
 import LoadingSpinner from "../../components/LoadingSpinner";
+import { motion } from "framer-motion";
 
 interface User {
   id: number;
@@ -251,11 +259,14 @@ const UserManage: React.FC = () => {
   const toggleUserStatus = async (user: User) => {
     try {
       await api.put(`/users/${user.id}/status`, {
-        is_active: !user.is_active
+        is_active: !user.is_active,
       });
-      
+
       await fetchData(); // Refresh the users list
-      toast.success(`User ${user.is_active ? 'deactivated' : 'activated'} successfully!`, { theme: "dark" });
+      toast.success(
+        `User ${user.is_active ? "deactivated" : "activated"} successfully!`,
+        { theme: "dark" },
+      );
     } catch (error: any) {
       console.error("Error updating user status:", error);
       handleApiError(error);
@@ -287,13 +298,22 @@ const UserManage: React.FC = () => {
         dataIndex: "index",
         key: "index",
         width: "8%",
-        render: (_: any, __: any, index: number) => index + 1,
+        render: (_: any, __: any, index: number) => (
+          <span className="font-medium text-gray-600 dark:text-gray-400">
+            {index + 1}
+          </span>
+        ),
       },
       {
         title: "Email",
         dataIndex: "email",
         key: "email",
         sorter: (a: any, b: any) => a.email.localeCompare(b.email),
+        render: (email: string) => (
+          <span className="font-medium text-gray-900 dark:text-white">
+            {email}
+          </span>
+        ),
       },
       {
         title: "Role",
@@ -301,6 +321,11 @@ const UserManage: React.FC = () => {
         key: "role",
         sorter: (a: any, b: any) =>
           a.role.role_name.localeCompare(b.role.role_name),
+        render: (role: string) => (
+          <span className="font-medium text-gray-900 dark:text-white">
+            {role}
+          </span>
+        ),
       },
       {
         title: "Status",
@@ -311,7 +336,6 @@ const UserManage: React.FC = () => {
             checked={is_active}
             onChange={() => permissions.update && toggleUserStatus(record)}
             disabled={!permissions.update}
-            
           />
         ),
       },
@@ -374,7 +398,11 @@ const UserManage: React.FC = () => {
       dataIndex: "index",
       key: "index",
       width: "8%",
-      render: (_: any, __: any, index: number) => index + 1,
+      render: (_: any, __: any, index: number) => (
+        <span className="font-medium text-gray-600 dark:text-gray-400">
+          {index + 1}
+        </span>
+      ),
     },
     {
       title: "RoleName",
@@ -382,6 +410,11 @@ const UserManage: React.FC = () => {
       key: "role_name",
       sorter: (a: any, b: any) =>
         a.role.role_name.localeCompare(b.role.role_name),
+      render: (role_name: string) => (
+        <span className="font-medium text-gray-900 dark:text-white">
+          {role_name}
+        </span>
+      ),
     },
     {
       title: "Menu",
@@ -389,6 +422,11 @@ const UserManage: React.FC = () => {
       key: "menu_path",
       sorter: (a: any, b: any) =>
         a.menu.menu_path.localeCompare(b.menu.menu_path),
+      render: (menu_path: string) => (
+        <span className="font-medium text-gray-900 dark:text-white">
+          {menu_path}
+        </span>
+      ),
     },
     {
       title: "Create",
@@ -445,234 +483,137 @@ const UserManage: React.FC = () => {
     return <LoadingSpinner />;
   }
 
+  const cardStyles = {
+    header: {
+      background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)",
+      borderRadius: "12px 12px 0 0",
+      padding: "12px 16px", // Reduced padding for mobile
+      border: "none",
+      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+      "@media (min-width: 640px)": {
+        padding: "16px 24px",
+      },
+    },
+    body: {
+      padding: "10px", // Reduced padding for mobile
+      borderRadius: "0 0 12px 12px",
+      backgroundColor: "rgba(255, 255, 255, 0.1)",
+      height: "auto", // Changed from fixed height
+      maxHeight: "60vh",
+      "@media (min-width: 640px)": {
+        padding: "20px",
+      },
+    },
+  };
+
   return (
-    <div className="flex max-h-[80vh] w-[80vw] gap-2 flex-col">
-      <Card className="flex h-[40vh] w-[82vw] gap-3">
-        <div className="flex overflow-x-auto shadow-md sm:rounded-lg">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="flex w-full flex-col gap-4 overflow-y-auto p-3 md:p-6"
+    >
+      {/* Users Card */}
+      <Card
+        title={
+          <div className="flex items-center gap-3">
+            <span className="text-lg font-semibold text-white">
+              User Manage
+            </span>
+            <div className="h-2 w-2 animate-pulse rounded-full bg-green-400" />
+          </div>
+        }
+        className="overflow-hidden rounded-xl border-0 shadow-lg transition-shadow hover:shadow-xl"
+        headStyle={cardStyles.header}
+        bodyStyle={cardStyles.body}
+      >
+        <div className="custom-table overflow-hidden rounded-lg shadow-md">
           <Table
+            style={{ width: "100%" }}
             columns={columns}
             dataSource={users}
             rowKey="id"
             pagination={false}
-            loading={loading}
+            loading={{
+              spinning: loading,
+              size: "large",
+            }}
+            scroll={{ x: "max-content", y: "calc(60vh - 120px)" }}
+            size="middle"
             className="custom-table"
-            scroll={{ y: "24vh" }}
-            sticky
           />
         </div>
-
-        {/* Edit User Role Modal */}
-        {permissions.update && (
-          <Modal
-            show={openEditModal}
-            size="md"
-            onClose={() => setOpenEditModal(false)}
-            popup
-          >
-            <Modal.Header />
-            <Modal.Body>
-              <div className="space-y-6">
-                <h3 className="text-xl font-medium text-gray-900 dark:text-white">
-                  Edit User Role
-                </h3>
-
-                <div>
-                  <Label htmlFor="role" value="Role" />
-                  <Select
-                    id="role"
-                    required
-                    value={selectedRole}
-                    onChange={(e) => setSelectedRole(e.target.value)}
-                  >
-                    <option value="">Select Role</option>
-                    {roles.map((role) => (
-                      <option key={role.id} value={role.id}>
-                        {role.role_name}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-
-                <div className="flex flex-auto">
-                  <Button className="flex-none" onClick={updateUserRole}>
-                    Update
-                  </Button>
-                  <Button
-                    className="ml-2 flex-none"
-                    onClick={() => setOpenEditModal(false)}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            </Modal.Body>
-          </Modal>
-        )}
       </Card>
 
-      <Card className="h-[50vh]  w-[82vw]">
-        {permissions.create && (
-
-          <button
-              className="mb-3 w-[9vw] inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
-              type="button"
-              onClick={() => {
-                setOpenAddPermissionModal(true)
-              }}
-          >
-            + Add New Permission
-          </button>
-          
-        )}
-        <div className="flex overflow-x-auto shadow-md sm:rounded-lg">
+      {/* Permissions Card */}
+      <Card
+        title={
+          <div className="flex items-center gap-3">
+            <span className="text-lg font-semibold text-white">
+              Permission Manage
+            </span>
+            <div className="h-2 w-2 animate-pulse rounded-full bg-green-400" />
+          </div>
+        }
+        className="overflow-hidden rounded-xl border-0 shadow-lg transition-shadow hover:shadow-xl"
+        headStyle={cardStyles.header}
+        bodyStyle={cardStyles.body}
+        extra={
+          <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row">
+            {permissions.create && (
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-900 to-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                onClick={() => setOpenAddPermissionModal(true)}
+              >
+                + Add New Permission
+              </motion.button>
+            )}
+          </div>
+        }
+      >
+        <div className="custom-table overflow-hidden rounded-lg shadow-md">
           <Table
+            style={{ width: "100%" }}
             columns={permissionsColumns}
             dataSource={permissionsData}
             rowKey="id"
             pagination={false}
-            loading={loading}
+            loading={{
+              spinning: loading,
+              size: "large",
+            }}
+            scroll={{ x: "max-content", y: "calc(60vh - 120px)" }}
+            size="middle"
             className="custom-table"
-            scroll={{ y: "24vh" }}
-            sticky
           />
         </div>
-
-        {/* Edit Permission Modal */}
-        {permissions.update && (
-          <Modal
-            show={openPermissionModal}
-            size="md"
-            onClose={() => setOpenPermissionModal(false)}
-            popup
-          >
-            <Modal.Header />
-            <Modal.Body>
-              <div className="space-y-6">
-                <h3 className="text-xl font-medium text-gray-900 dark:text-white">
-                  Edit Permissions
-                </h3>
-
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="create"
-                      checked={permissionValues.create}
-                      onChange={(e) =>
-                        setPermissionValues((prev) => ({
-                          ...prev,
-                          create: e.target.checked,
-                        }))
-                      }
-                    />
-                    <Label htmlFor="create">Create</Label>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="read"
-                      checked={permissionValues.read}
-                      onChange={(e) =>
-                        setPermissionValues((prev) => ({
-                          ...prev,
-                          read: e.target.checked,
-                        }))
-                      }
-                    />
-                    <Label htmlFor="read">Read</Label>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="update"
-                      checked={permissionValues.update}
-                      onChange={(e) =>
-                        setPermissionValues((prev) => ({
-                          ...prev,
-                          update: e.target.checked,
-                        }))
-                      }
-                    />
-                    <Label htmlFor="update">Update</Label>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="delete"
-                      checked={permissionValues.delete}
-                      onChange={(e) =>
-                        setPermissionValues((prev) => ({
-                          ...prev,
-                          delete: e.target.checked,
-                        }))
-                      }
-                    />
-                    <Label htmlFor="delete">Delete</Label>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="download"
-                      checked={permissionValues.download}
-                      onChange={(e) =>
-                        setPermissionValues((prev) => ({
-                          ...prev,
-                          download: e.target.checked,
-                        }))
-                      }
-                    />
-                    <Label htmlFor="download">Download</Label>
-                  </div>
-                </div>
-
-                <div className="flex flex-auto">
-                  <Button className="flex-none" onClick={updatePermission}>
-                    Update
-                  </Button>
-                  <Button
-                    className="ml-2 flex-none"
-                    onClick={() => setOpenPermissionModal(false)}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            </Modal.Body>
-          </Modal>
-        )}
       </Card>
 
-      {/* Add Permission Modal */}
-      {permissions.create && (
+      {/* Edit User Role Modal */}
+      {permissions.update && (
         <Modal
-          show={openAddPermissionModal}
+          show={openEditModal}
           size="md"
-          onClose={() => setOpenAddPermissionModal(false)}
+          onClose={() => setOpenEditModal(false)}
           popup
+          className="responsive-modal"
         >
-          <Modal.Header />
+          <Modal.Header className="border-b border-gray-200 dark:border-gray-700" />
           <Modal.Body>
-            <div className="space-y-6">
+            <div className="space-y-4">
               <h3 className="text-xl font-medium text-gray-900 dark:text-white">
-                Add New Permission
+                Edit User Role
               </h3>
-
               <div>
                 <Label htmlFor="role" value="Role" />
                 <Select
                   id="role"
                   required
-                  value={newPermission.role_id}
-                  onChange={(e) =>
-                    setNewPermission((prev) => ({
-                      ...prev,
-                      role_id: e.target.value,
-                    }))
-                  }
+                  value={selectedRole}
+                  onChange={(e) => setSelectedRole(e.target.value)}
+                  className="w-full rounded-lg"
                 >
                   <option value="">Select Role</option>
                   {roles.map((role) => (
@@ -682,116 +623,190 @@ const UserManage: React.FC = () => {
                   ))}
                 </Select>
               </div>
-
-              <div>
-                <Label htmlFor="menu" value="Menu" />
-                <Select
-                  id="menu"
-                  required
-                  value={newPermission.menu_id}
-                  onChange={(e) =>
-                    setNewPermission((prev) => ({
-                      ...prev,
-                      menu_id: e.target.value,
-                    }))
-                  }
-                >
-                  <option value="">Select Menu</option>
-                  {menus.map((menu) => (
-                    <option key={menu.id} value={menu.id}>
-                      {menu.menu_name}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="create-new"
-                    checked={newPermission.create}
-                    onChange={(e) =>
-                      setNewPermission((prev) => ({
-                        ...prev,
-                        create: e.target.checked,
-                      }))
-                    }
-                  />
-                  <Label htmlFor="create-new">Create</Label>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="read-new"
-                    checked={newPermission.read}
-                    onChange={(e) =>
-                      setNewPermission((prev) => ({
-                        ...prev,
-                        read: e.target.checked,
-                      }))
-                    }
-                  />
-                  <Label htmlFor="read-new">Read</Label>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="update-new"
-                    checked={newPermission.update}
-                    onChange={(e) =>
-                      setNewPermission((prev) => ({
-                        ...prev,
-                        update: e.target.checked,
-                      }))
-                    }
-                  />
-                  <Label htmlFor="update-new">Update</Label>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="delete-new"
-                    checked={newPermission.delete}
-                    onChange={(e) =>
-                      setNewPermission((prev) => ({
-                        ...prev,
-                        delete: e.target.checked,
-                      }))
-                    }
-                  />
-                  <Label htmlFor="delete-new">Delete</Label>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="download-new"
-                    checked={newPermission.download}
-                    onChange={(e) =>
-                      setNewPermission((prev) => ({
-                        ...prev,
-                        download: e.target.checked,
-                      }))
-                    }
-                  />
-                  <Label htmlFor="download-new">Download</Label>
-                </div>
-              </div>
-
-              <div className="flex flex-auto">
+              <div className="xs:flex-row flex flex-col gap-2 pt-4">
                 <Button
-                  className="flex-none"
-                  onClick={createPermission}
-                  disabled={!newPermission.role_id || !newPermission.menu_id}
+                  className="xs:w-auto w-full"
+                  gradientDuoTone="purpleToBlue"
+                  onClick={updateUserRole}
                 >
-                  Create
+                  Update
                 </Button>
                 <Button
-                  className="ml-2 flex-none"
+                  className="xs:w-auto w-full"
+                  color="gray"
+                  onClick={() => setOpenEditModal(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </Modal.Body>
+        </Modal>
+      )}
+
+      {/* Edit Permission Modal */}
+      {permissions.update && (
+        <Modal
+          show={openPermissionModal}
+          size="md"
+          onClose={() => setOpenPermissionModal(false)}
+          popup
+          className="responsive-modal"
+        >
+          <Modal.Header className="border-b border-gray-200 dark:border-gray-700" />
+          <Modal.Body>
+            <div className="space-y-4">
+              <h3 className="text-xl font-medium text-gray-900 dark:text-white">
+                Edit Permissions
+              </h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {Object.entries(permissionValues).map(([key, value]) => (
+                  <div key={key} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id={`permission_${key}`}
+                      checked={value}
+                      onChange={(e) =>
+                        setPermissionValues((prev) => ({
+                          ...prev,
+                          [key]: e.target.checked,
+                        }))
+                      }
+                      className="rounded"
+                    />
+                    <Label htmlFor={`permission_${key}`} className="capitalize">
+                      {key}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+              <div className="xs:flex-row flex flex-col gap-2 pt-4">
+                <Button
+                  className="xs:w-auto w-full"
+                  gradientDuoTone="purpleToBlue"
+                  onClick={updatePermission}
+                >
+                  Update
+                </Button>
+                <Button
+                  className="xs:w-auto w-full"
+                  color="gray"
+                  onClick={() => setOpenPermissionModal(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </Modal.Body>
+        </Modal>
+      )}
+
+      {/* Add Permission Modal */}
+      {permissions.create && (
+        <Modal
+          show={openAddPermissionModal}
+          size="md"
+          onClose={() => setOpenAddPermissionModal(false)}
+          popup
+          className="responsive-modal"
+        >
+          <Modal.Header className="border-b border-gray-200 dark:border-gray-700" />
+          <Modal.Body>
+            <div className="space-y-4">
+              <h3 className="text-xl font-medium text-gray-900 dark:text-white">
+                Add New Permission
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="role_id" value="Role" />
+                  <Select
+                    id="role_id"
+                    required
+                    value={newPermission.role_id}
+                    onChange={(e) =>
+                      setNewPermission({
+                        ...newPermission,
+                        role_id: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-lg"
+                  >
+                    <option value="">Select Role</option>
+                    {roles.map((role) => (
+                      <option key={role.id} value={role.id}>
+                        {role.role_name}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="menu_id" value="Menu" />
+                  <Select
+                    id="menu_id"
+                    required
+                    value={newPermission.menu_id}
+                    onChange={(e) =>
+                      setNewPermission({
+                        ...newPermission,
+                        menu_id: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-lg"
+                  >
+                    <option value="">Select Menu</option>
+                    {menus.map((menu) => (
+                      <option key={menu.id} value={menu.id}>
+                        {menu.menu_name}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {Object.entries(newPermission)
+                    .filter(([key]) =>
+                      [
+                        "create",
+                        "read",
+                        "update",
+                        "delete",
+                        "download",
+                      ].includes(key),
+                    )
+                    .map(([key, value]) => (
+                      <div key={key} className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id={`new_permission_${key}`}
+                          checked={Boolean(value)}
+                          onChange={(e) =>
+                            setNewPermission((prev) => ({
+                              ...prev,
+                              [key]: e.target.checked,
+                            }))
+                          }
+                          className="rounded"
+                        />
+                        <Label
+                          htmlFor={`new_permission_${key}`}
+                          className="capitalize"
+                        >
+                          {key}
+                        </Label>
+                      </div>
+                    ))}
+                </div>
+              </div>
+              <div className="xs:flex-row flex flex-col gap-2 pt-4">
+                <Button
+                  className="xs:w-auto w-full"
+                  gradientDuoTone="purpleToBlue"
+                  onClick={createPermission}
+                >
+                  Add Permission
+                </Button>
+                <Button
+                  className="xs:w-auto w-full"
+                  color="gray"
                   onClick={() => setOpenAddPermissionModal(false)}
                 >
                   Cancel
@@ -893,7 +908,7 @@ const UserManage: React.FC = () => {
           </Modal>
         </>
       )}
-    </div>
+    </motion.div>
   );
 };
 

@@ -15,6 +15,7 @@ tbody .ant-table-cell {
 
 .custom-table .ant-table-body {
   overflow-y: auto !important;
+  border-radius: 5px !important;
 }
 
 .custom-table .ant-table-body::-webkit-scrollbar {
@@ -68,6 +69,19 @@ tbody .ant-table-cell {
 .ant-input-number-input::placeholder,
 .ant-input-textarea::placeholder {
   color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.ant-picker-input {
+  background-color: #1a222d !important;
+  input {
+    color: white !important;
+  }
+}
+.ant-picker {
+  background-color: #1a222d !important;
+}
+.anticon-swap-right {
+  color: white !important;
 }
 
 /* For Ant Design Select placeholder */
@@ -169,6 +183,24 @@ textarea::placeholder {
 .custom-table .ant-table-column-sorter-up.active,
 .custom-table .ant-table-column-sorter-down.active {
   color: #1677ff !important;
+}
+
+.custom-pagination {
+  margin-top: 16px !important;
+}
+
+.custom-table .ant-table-pagination {
+  margin: 16px 0 !important;
+}
+
+@media (max-width: 640px) {
+  .custom-pagination {
+    margin-top: 12px !important;
+  }
+
+  .custom-table .ant-table-pagination {
+    margin: 12px 0 !important;
+  }
 }
 
 .ant-table .ant-btn-text:hover {
@@ -294,4 +326,68 @@ textarea::placeholder {
 
 .ant-drawer-close {
   color: white !important;
+}
+
+@layer components {
+  .sidebar-item-hover {
+    @apply transition-all duration-200 hover:pl-4;
+  }
+
+  .backdrop-blur {
+    backdrop-filter: blur(8px);
+  }
+}
+
+/* Override Ant Design input placeholder styles */
+.ant-input::placeholder {
+  color: rgba(107, 114, 128, 0.8) !important; /* gray-500 with opacity */
+}
+
+.ant-input-password input::placeholder {
+  color: rgba(107, 114, 128, 0.8) !important;
+}
+
+.ant-select-selection-placeholder {
+  color: rgba(107, 114, 128, 0.8) !important;
+}
+
+/* Dark mode overrides */
+.dark .ant-input::placeholder,
+.dark .ant-input-password input::placeholder,
+.dark .ant-select-selection-placeholder {
+  color: rgba(
+    156,
+    163,
+    175,
+    0.8
+  ) !important; /* gray-400 with opacity for dark mode */
+}
+
+.ant-card {
+  background-color: #1a222d !important;
+  color: white !important;
+}
+
+.custom-drawer .ant-drawer-header {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: white;
+  z-index: 150;
+}
+
+.custom-drawer .ant-drawer-title {
+  color: white;
+}
+
+.custom-drawer .ant-drawer-close {
+  color: white;
+}
+
+@media (max-width: 640px) {
+  .custom-drawer .ant-drawer-content-wrapper {
+    width: 100% !important;
+  }
+}
+
+.ant-drawer {
+  z-index: 500 !important;
 }

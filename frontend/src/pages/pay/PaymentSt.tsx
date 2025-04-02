@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { Card, Button, Modal, Label, TextInput, Select } from "flowbite-react";
+import { Button, Modal, Label, TextInput, Select } from "flowbite-react";
 import {
   Table,
   TableColumnsType,
   Button as AntButton,
   Space,
   DatePicker,
+  Card,
 } from "antd";
-import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import {
+  EditOutlined,
+  DeleteOutlined,
+  PlusOutlined,
+  DownloadOutlined,
+} from "@ant-design/icons";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import api from "../../config";
@@ -17,6 +23,7 @@ import Papa from "papaparse";
 import { usePermissions } from "../../hooks/usePermission";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { useAuth } from "../../hooks/useAuth";
+import { motion } from "framer-motion";
 
 interface Payment {
   id: number;
@@ -64,6 +71,29 @@ const PaymentComponent: React.FC = () => {
 
   let payMethods = ["Credit card", "PayPal", "Zelle", "CashApp"];
 
+  const cardStyles = {
+    header: {
+      background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)",
+      borderRadius: "12px 12px 0 0",
+      padding: "12px 16px", // Reduced padding for mobile
+      border: "none",
+      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+      "@media (min-width: 640px)": {
+        padding: "16px 24px",
+      },
+    },
+    body: {
+      padding: "10px", // Reduced padding for mobile
+      borderRadius: "0 0 12px 12px",
+      backgroundColor: "rgba(255, 255, 255, 0.1)",
+      height: "auto", // Changed from fixed height
+      maxHeight: "100vh",
+      "@media (min-width: 640px)": {
+        padding: "20px",
+      },
+    },
+  };
+
   useEffect(() => {
     if (!loading_1) {
       if (!permissions.read) {
@@ -75,13 +105,15 @@ const PaymentComponent: React.FC = () => {
         const fetchData = async () => {
           setLoading(true);
           try {
-            const [paymentsRes, studentsRes, classTypesRes] = await Promise.all([
-              auth.user?.role === 'student' 
-                ? api.get(`/payments/student/${auth.user.id}`)
-                : api.get("/payments"),
-              api.get("/students"),
-              api.get("/class-types"),
-            ]);
+            const [paymentsRes, studentsRes, classTypesRes] = await Promise.all(
+              [
+                auth.user?.role === "student"
+                  ? api.get(`/payments/student/${auth.user.id}`)
+                  : api.get("/payments"),
+                api.get("/students"),
+                api.get("/class-types"),
+              ],
+            );
 
             setPayments(paymentsRes.data.payments || []);
             setStudents(studentsRes.data || []);
@@ -241,18 +273,25 @@ const PaymentComponent: React.FC = () => {
         dataIndex: "index",
         key: "index",
         width: "8%",
-        render: (_: any, __: any, index: number) => index + 1,
+        fixed: "left",
+        render: (_: any, __: any, index: number) => (
+          <span className="text-gray-600 dark:text-gray-400">{index + 1}</span>
+        ),
       },
       {
         title: "Student",
         key: "student",
-        render: (_: any, record: any) =>
-          `${record.Student.first_name} ${record.Student.last_name}`,
+        fixed: "left",
+        render: (_: any, record: any) => (
+          <span className="font-medium text-gray-900 dark:text-white">
+            {record.Student.first_name} {record.Student.last_name}
+          </span>
+        ),
         sorter: (a: any, b: any) =>
           `${a.Student.first_name} ${a.Student.last_name}`.localeCompare(
             `${b.Student.first_name} ${b.Student.last_name}`,
           ),
-        ...(auth.user?.role !== 'student' && {
+        ...(auth.user?.role !== "student" && {
           filters: students
             .map((student) => ({
               text: `${student.first_name} ${student.last_name}`,
@@ -268,7 +307,11 @@ const PaymentComponent: React.FC = () => {
       {
         title: "Class Type",
         key: "class_type",
-        render: (_: any, record: any) => record.class_type.name,
+        render: (_: any, record: any) => (
+          <span className="font-medium text-blue-600 dark:text-blue-400">
+            {record.class_type.name}
+          </span>
+        ),
         sorter: (a: any, b: any) =>
           a.class_type.name.localeCompare(b.class_type.name),
       },
@@ -277,12 +320,23 @@ const PaymentComponent: React.FC = () => {
         dataIndex: "amount",
         key: "amount",
         sorter: (a: any, b: any) => a.amount - b.amount,
+        render: (value: number) => (
+          <span className="font-medium text-green-600 dark:text-green-400">
+            {value}$
+          </span>
+        ),
       },
       {
         title: "Lessons",
         dataIndex: "num_lessons",
         key: "num_lessons",
+        width: "10%",
         sorter: (a: any, b: any) => a.num_lessons - b.num_lessons,
+        render: (value: number) => (
+          <span className="font-medium text-red-600 dark:text-red-400">
+            {value}
+          </span>
+        ),
       },
       {
         title: "Pay with",
@@ -290,14 +344,22 @@ const PaymentComponent: React.FC = () => {
         key: "payment_method",
         sorter: (a: any, b: any) =>
           a.payment_method.localeCompare(b.payment_method),
+        render: (value: string) => (
+          <span className="font-medium text-purple-600 dark:text-purple-400">
+            {value}
+          </span>
+        ),
       },
       {
         title: "Payment Date",
         key: "payment_date",
-        render: (_: any, record: any) =>
-          record.payment_date
-            ? dayjs(record.payment_date).format("YYYY-MM-DD")
-            : "-",
+        render: (_: any, record: any) => (
+          <span className="font-medium text-gray-900 dark:text-white">
+            {record.payment_date
+              ? dayjs(record.payment_date).format("YYYY-MM-DD")
+              : "-"}
+          </span>
+        ),
         sorter: (a: any, b: any) => {
           if (!a.payment_date) return -1;
           if (!b.payment_date) return 1;
@@ -341,179 +403,96 @@ const PaymentComponent: React.FC = () => {
   }
 
   return (
-    <Card className="max-h-[80vh]">
-      <div className="custom-table shadow-md sm:rounded-lg">
-        {permissions.create && (
-          <button
-            className="mb-3 inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
-            type="button"
-            onClick={() => {
-              setOpenModal(true);
-              setSelectedStudent("");
-              setSelectedClassType("");
-              setSelectedPaymentMethod("");
-              setAmount("");
-              setNumLessons("");
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="flex h-[84vh] w-full flex-col gap-4 overflow-y-auto p-3 md:p-6"
+    >
+      <Card
+        title={
+          <div className="flex items-center gap-3">
+            <span className="text-lg font-semibold text-white">Payments</span>
+            <div className="h-2 w-2 animate-pulse rounded-full bg-green-400" />
+          </div>
+        }
+        className="overflow-hidden rounded-xl border-0 shadow-lg transition-shadow hover:shadow-xl"
+        headStyle={cardStyles.header}
+        bodyStyle={cardStyles.body}
+        extra={
+          <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row">
+            {/* Action Buttons Container */}
+            <div className="xs:flex-row flex flex-col gap-2">
+              {permissions.create && (
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-900 to-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  onClick={() => {
+                    setOpenModal(true);
+                    setSelectedStudent("");
+                    setSelectedClassType("");
+                    setSelectedPaymentMethod("");
+                    setAmount("");
+                    setNumLessons("");
+                  }}
+                >
+                  <PlusOutlined className="mr-2" />
+                  Add Payment
+                </motion.button>
+              )}
+
+              {permissions.download && (
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
+                  onClick={downloadCSV}
+                >
+                  <DownloadOutlined className="mr-2" />
+                  Download CSV
+                </motion.button>
+              )}
+            </div>
+          </div>
+        }
+      >
+        <div className="custom-table overflow-hidden rounded-lg shadow-md">
+          <Table
+            style={{ width: "100%" }}
+            className="custom-table"
+            columns={columns}
+            dataSource={payments.map((item, index) => ({
+              ...item,
+              key: index,
+            }))}
+            pagination={false}
+            loading={{
+              spinning: loading,
+              size: "large",
             }}
-          >
-            + Add Payment
-          </button>
-        )}
+            scroll={{ x: "max-content", y: "calc(80vh - 200px)" }}
+            size="middle"
+          />
+        </div>
+      </Card>
 
-        {permissions.download && (
-          <button
-            className="mb-3 ml-2 inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
-            onClick={downloadCSV}
-          >
-            📥 Download CSV
-          </button>
-        )}
-
-        <Table
-          style={{ width: "70vw" }}
-          className="custom-table"
-          columns={columns}
-          dataSource={payments.map((item, index) => ({ ...item, key: index }))}
-          pagination={false}
-          loading={{
-            spinning: loading,
-            size: "large",
-          }}
-          scroll={{ y: "50vh" }}
-          sticky
-        />
-      </div>
-
+      {/* Add Payment Modal */}
       <Modal
         show={openModal}
         size="md"
         onClose={() => setOpenModal(false)}
         popup
+        className="responsive-modal"
       >
-        <Modal.Header />
+        <Modal.Header className="border-b border-gray-200 dark:border-gray-700" />
         <Modal.Body>
-          <div className="space-y-6">
+          <div className="space-y-4">
             <h3 className="text-xl font-medium text-gray-900 dark:text-white">
               Add Payment
             </h3>
 
-            <div>
-              <Label htmlFor="student" value="Student" />
-              <Select
-                id="student"
-                required
-                value={selectedStudent}
-                onChange={(e) => setSelectedStudent(e.target.value)}
-              >
-                <option value="">Select Student</option>
-                {students.map((student) => (
-                  <option key={student.id} value={student.id}>
-                    {student.first_name} {student.last_name}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="classType" value="Class Type" />
-              <Select
-                id="classType"
-                required
-                value={selectedClassType}
-                onChange={(e) => setSelectedClassType(e.target.value)}
-              >
-                <option value="">Select Class Type</option>
-                {classTypes.map((classType) => (
-                  <option key={classType.id} value={classType.id}>
-                    {classType.name}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="amount" value="Total Amount" />
-              <TextInput
-                id="amount"
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="numLessons" value="Number of Lessons" />
-              <TextInput
-                id="numLessons"
-                type="number"
-                value={numLessons}
-                onChange={(e) => setNumLessons(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="paymentMethod" value="Payment Method" />
-              <Select
-                id="paymentMethod"
-                required
-                value={selectedPaymentMethod}
-                onChange={(e) => setSelectedPaymentMethod(e.target.value)}
-              >
-                <option value="">Select Payment Method</option>
-                {payMethods.map((methods: any, key: number) => (
-                  <option key={key} value={methods}>
-                    {methods}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="payment_date" value="Payment Date" />
-              <DatePicker
-                id="payment_date"
-                size={"large"}
-                style={{
-                  width: "100%",
-                  backgroundColor: "#374151",
-                  borderColor: "#4B5563",
-                  color: "white",
-                }}
-                value={paymentDate}
-                onChange={(date) => setPaymentDate(date)}
-                placeholder="Select payment date"
-              />
-            </div>
-
-            <div className="flex flex-auto">
-              <Button className="flex-none" onClick={createPayment}>
-                Add
-              </Button>
-              <Button
-                className="ml-2 flex-none"
-                onClick={() => setOpenModal(false)}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </Modal.Body>
-      </Modal>
-
-      {/* Edit Payment Modal */}
-      {permissions.update && (
-        <Modal
-          show={openEditModal}
-          size="md"
-          onClose={() => setOpenEditModal(false)}
-          popup
-        >
-          <Modal.Header />
-          <Modal.Body>
-            <div className="space-y-6">
-              <h3 className="text-xl font-medium text-gray-900 dark:text-white">
-                Edit Payment
-              </h3>
-
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <Label htmlFor="student" value="Student" />
                 <Select
@@ -521,6 +500,7 @@ const PaymentComponent: React.FC = () => {
                   required
                   value={selectedStudent}
                   onChange={(e) => setSelectedStudent(e.target.value)}
+                  className="w-full rounded-lg"
                 >
                   <option value="">Select Student</option>
                   {students.map((student) => (
@@ -538,6 +518,7 @@ const PaymentComponent: React.FC = () => {
                   required
                   value={selectedClassType}
                   onChange={(e) => setSelectedClassType(e.target.value)}
+                  className="w-full rounded-lg"
                 >
                   <option value="">Select Class Type</option>
                   {classTypes.map((classType) => (
@@ -547,23 +528,32 @@ const PaymentComponent: React.FC = () => {
                   ))}
                 </Select>
               </div>
+            </div>
 
-              <Label htmlFor="amount" value="Total Amount" />
-              <TextInput
-                id="amount"
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="amount" value="Total Amount" />
+                <TextInput
+                  id="amount"
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="w-full rounded-lg"
+                />
+              </div>
+              <div>
+                <Label htmlFor="numLessons" value="Number of Lessons" />
+                <TextInput
+                  id="numLessons"
+                  type="number"
+                  value={numLessons}
+                  onChange={(e) => setNumLessons(e.target.value)}
+                  className="w-full rounded-lg"
+                />
+              </div>
+            </div>
 
-              <Label htmlFor="numLessons" value="Number of Lessons" />
-              <TextInput
-                id="numLessons"
-                type="number"
-                value={numLessons}
-                onChange={(e) => setNumLessons(e.target.value)}
-              />
-
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <Label htmlFor="paymentMethod" value="Payment Method" />
                 <Select
@@ -571,6 +561,7 @@ const PaymentComponent: React.FC = () => {
                   required
                   value={selectedPaymentMethod}
                   onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                  className="w-full rounded-lg"
                 >
                   <option value="">Select Payment Method</option>
                   {payMethods.map((methods: any, key: number) => (
@@ -580,12 +571,11 @@ const PaymentComponent: React.FC = () => {
                   ))}
                 </Select>
               </div>
-
               <div>
-                <Label htmlFor="edit_payment_date" value="Payment Date" />
+                <Label htmlFor="payment_date" value="Payment Date" />
                 <DatePicker
-                  id="edit_payment_date"
-                  size={"large"}
+                  id="payment_date"
+                  size="large"
                   style={{
                     width: "100%",
                     backgroundColor: "#374151",
@@ -595,15 +585,156 @@ const PaymentComponent: React.FC = () => {
                   value={paymentDate}
                   onChange={(date) => setPaymentDate(date)}
                   placeholder="Select payment date"
+                  className="rounded-lg"
                 />
               </div>
+            </div>
 
-              <div className="flex flex-auto">
-                <Button className="flex-none" onClick={updatePayment}>
+            <div className="xs:flex-row flex flex-col gap-2 pt-4">
+              <Button
+                className="xs:w-auto w-full"
+                gradientDuoTone="purpleToBlue"
+                onClick={createPayment}
+              >
+                Add Payment
+              </Button>
+              <Button
+                className="xs:w-auto w-full"
+                color="gray"
+                onClick={() => setOpenModal(false)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+
+      {/* Edit Payment Modal - Similar updates to Add Payment Modal */}
+      {permissions.update && (
+        <Modal
+          show={openEditModal}
+          size="md"
+          onClose={() => setOpenEditModal(false)}
+          popup
+          className="responsive-modal"
+        >
+          <Modal.Header className="border-b border-gray-200 dark:border-gray-700" />
+          <Modal.Body>
+            <div className="space-y-4">
+              <h3 className="text-xl font-medium text-gray-900 dark:text-white">
+                Edit Payment
+              </h3>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <Label htmlFor="student" value="Student" />
+                  <Select
+                    id="student"
+                    required
+                    value={selectedStudent}
+                    onChange={(e) => setSelectedStudent(e.target.value)}
+                    className="w-full rounded-lg"
+                  >
+                    <option value="">Select Student</option>
+                    {students.map((student) => (
+                      <option key={student.id} value={student.id}>
+                        {student.first_name} {student.last_name}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="classType" value="Class Type" />
+                  <Select
+                    id="classType"
+                    required
+                    value={selectedClassType}
+                    onChange={(e) => setSelectedClassType(e.target.value)}
+                    className="w-full rounded-lg"
+                  >
+                    <option value="">Select Class Type</option>
+                    {classTypes.map((classType) => (
+                      <option key={classType.id} value={classType.id}>
+                        {classType.name}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <Label htmlFor="amount" value="Total Amount" />
+                  <TextInput
+                    id="amount"
+                    type="number"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="w-full rounded-lg"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="numLessons" value="Number of Lessons" />
+                  <TextInput
+                    id="numLessons"
+                    type="number"
+                    value={numLessons}
+                    onChange={(e) => setNumLessons(e.target.value)}
+                    className="w-full rounded-lg"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <Label htmlFor="paymentMethod" value="Payment Method" />
+                  <Select
+                    id="paymentMethod"
+                    required
+                    value={selectedPaymentMethod}
+                    onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                    className="w-full rounded-lg"
+                  >
+                    <option value="">Select Payment Method</option>
+                    {payMethods.map((methods: any, key: number) => (
+                      <option key={key} value={methods}>
+                        {methods}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="edit_payment_date" value="Payment Date" />
+                  <DatePicker
+                    id="edit_payment_date"
+                    size="large"
+                    style={{
+                      width: "100%",
+                      backgroundColor: "#374151",
+                      borderColor: "#4B5563",
+                      color: "white",
+                    }}
+                    value={paymentDate}
+                    onChange={(date) => setPaymentDate(date)}
+                    placeholder="Select payment date"
+                    className="rounded-lg"
+                  />
+                </div>
+              </div>
+
+              <div className="xs:flex-row flex flex-col gap-2 pt-4">
+                <Button
+                  className="xs:w-auto w-full"
+                  gradientDuoTone="purpleToBlue"
+                  onClick={updatePayment}
+                >
                   Update
                 </Button>
                 <Button
-                  className="ml-2 flex-none"
+                  className="xs:w-auto w-full"
+                  color="gray"
                   onClick={() => setOpenEditModal(false)}
                 >
                   Cancel
@@ -613,7 +744,7 @@ const PaymentComponent: React.FC = () => {
           </Modal.Body>
         </Modal>
       )}
-    </Card>
+    </motion.div>
   );
 };
 

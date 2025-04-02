@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
-import { Card, DatePicker, Button } from "antd";
-import { Table, TableColumnsType } from "antd";
+import { Card, DatePicker, Button, Table, TableColumnsType } from "antd";
 import { DownloadOutlined } from "@ant-design/icons";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import Papa from "papaparse";
 import type { Dayjs } from "dayjs";
+import { motion } from "framer-motion";
 import api from "../../config";
 import { useAuth } from "../../hooks/useAuth";
+
 const { RangePicker } = DatePicker;
 
 interface ClassState {
@@ -26,6 +27,30 @@ interface TeacherSalary {
   }[];
 }
 
+// Update cardStyles to be more responsive
+const cardStyles = {
+  header: {
+    background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)",
+    borderRadius: "12px 12px 0 0",
+    padding: "12px 16px", // Reduced padding for mobile
+    border: "none",
+    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+    "@media (min-width: 640px)": {
+      padding: "16px 24px",
+    },
+  },
+  body: {
+    padding: "10px", // Reduced padding for mobile
+    borderRadius: "0 0 12px 12px",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    height: "auto", // Changed from fixed height
+    maxHeight: "80vh",
+    "@media (min-width: 640px)": {
+      padding: "20px",
+    },
+  },
+};
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const [classStateData, setStateTypeData] = useState<ClassState[]>([]);
@@ -39,6 +64,7 @@ export default function Dashboard() {
     null,
   ]);
   const auth = useAuth();
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -186,28 +212,47 @@ export default function Dashboard() {
       title: "No",
       key: "index",
       width: "10%",
-      render: (_: any, __: any, index: number) => index + 1,
+      fixed: "left",
+      render: (_: any, __: any, index: number) => (
+        <span className="text-gray-600 dark:text-gray-400">{index + 1}</span>
+      ),
     },
     {
       title: "Name",
       dataIndex: "name",
       key: "name",
+      fixed: "left",
       sorter: (a, b) => a.name.localeCompare(b.name),
+      render: (text: string) => (
+        <span className="font-medium text-gray-900 dark:text-white">
+          {text}
+        </span>
+      ),
     },
     {
-      title: "Classes paid",
+      title: "Classes Paid",
       dataIndex: "total_classes",
       key: "total_classes",
       sorter: (a, b) => a.total_classes - b.total_classes,
+      render: (value: number) => (
+        <span className="font-medium text-blue-600 dark:text-blue-400">
+          {value}
+        </span>
+      ),
     },
     {
-      title: "Classes taken",
+      title: "Classes Taken",
       dataIndex: "paid_classes",
       key: "paid_classes",
       sorter: (a, b) => a.paid_classes - b.paid_classes,
+      render: (value: number) => (
+        <span className="font-medium text-green-600 dark:text-green-400">
+          {value}
+        </span>
+      ),
     },
     {
-      title: "Classes left",
+      title: "Classes Left",
       dataIndex: "unpaid_classes",
       key: "unpaid_classes",
       sorter: (a, b) => a.unpaid_classes - b.unpaid_classes,
@@ -239,10 +284,10 @@ export default function Dashboard() {
                 ? "#ef4444"
                 : unpaid_classes === 1
                   ? "#eab308"
-                  : "inherit",
+                  : "#22c55e",
           },
         },
-        children: unpaid_classes,
+        children: <span className="font-medium">{unpaid_classes}</span>,
       }),
     },
   ];
@@ -252,13 +297,22 @@ export default function Dashboard() {
       title: "No",
       key: "index",
       width: "10%",
-      render: (_: any, __: any, index: number) => index + 1,
+      fixed: "left",
+      render: (_: any, __: any, index: number) => (
+        <span className="text-gray-600 dark:text-gray-400">{index + 1}</span>
+      ),
     },
     {
       title: "Name",
       dataIndex: "name",
+      fixed: "left",
       key: "name",
       sorter: (a, b) => a.name.localeCompare(b.name),
+      render: (text: string) => (
+        <span className="font-medium text-gray-900 dark:text-white">
+          {text}
+        </span>
+      ),
     },
     ...classType.map((type) => ({
       title: type.name,
@@ -267,18 +321,26 @@ export default function Dashboard() {
         const classStat = record.class_type_stats?.find(
           (stat: any) => stat.class_type === type.name,
         );
-        return classStat
-          ? `${classStat.total_classes_taught} ($${classStat.total_salary})`
-          : "0 ($0.00)";
+        return (
+          <span className="font-medium text-gray-700 dark:text-gray-300">
+            {classStat
+              ? `${classStat.total_classes_taught} ($${classStat.total_salary})`
+              : "0 ($0.00)"}
+          </span>
+        );
       },
     })),
     {
       title: "Total",
       key: "total",
-      render: (_, record) =>
-        `$${record.class_type_stats
-          ?.reduce((sum, stat) => sum + parseFloat(stat.total_salary), 0)
-          .toFixed(2)}`,
+      render: (_, record) => (
+        <span className="font-medium text-blue-600 dark:text-blue-400">
+          $
+          {record.class_type_stats
+            ?.reduce((sum, stat) => sum + parseFloat(stat.total_salary), 0)
+            .toFixed(2)}
+        </span>
+      ),
       sorter: (a, b) => {
         const totalA = a.class_type_stats?.reduce(
           (sum, stat) => sum + parseFloat(stat.total_salary),
@@ -294,119 +356,127 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="flex max-h-[80vh] w-[80vw] flex-col gap-2">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="flex w-full flex-col gap-4 overflow-y-auto p-3 md:gap-6 md:p-6"
+    >
+      {/* Header Section with Date Range and Export */}
+      <div className="mb-2 flex flex-col items-start justify-between gap-3 rounded-xl bg-white p-3 shadow-lg dark:bg-gray-800 sm:flex-row sm:items-center md:mb-4 md:p-4">
+        <div className="xs:flex-row xs:items-center flex w-full flex-col items-start gap-3 sm:w-auto">
+          <RangePicker
+            onChange={(dates) =>
+              setDateRange(dates as [Dayjs | null, Dayjs | null])
+            }
+            className="xs:w-auto w-full rounded-lg shadow-sm hover:border-blue-400 focus:border-blue-500"
+          />
+          <Button
+            type="default"
+            onClick={() => setDateRange([null, null])}
+            className="xs:w-auto w-full rounded-lg border-gray-200 font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+          >
+            Reset
+          </Button>
+        </div>
+
+        {(auth.user?.role === "admin" || auth.user?.role === "accountant") && (
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="relative w-full sm:w-auto"
+          >
+            <Button
+              type="primary"
+              icon={<DownloadOutlined />}
+              onClick={downloadCSV}
+              className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 font-medium shadow-lg transition-all hover:from-blue-700 hover:to-indigo-700"
+            >
+              Export Data
+            </Button>
+            <div className="absolute -bottom-1 left-0 right-0 h-1 animate-pulse rounded-full bg-blue-400/30" />
+          </motion.div>
+        )}
+      </div>
+
+      {/* Class State Table */}
       {(auth.user?.role === "student" ||
         auth.user?.role === "admin" ||
         auth.user?.role === "manager" ||
         auth.user?.role === "accountant") && (
-        <Card
-          title="Class State"
-          className={`h-[40vh] w-[82vw]`}
-          headStyle={{
-            color: "white",
-            background: "#1E293B", // Darker blue-gray
-            borderBottom: "1px solid #334155", // Darker border
-          }}
-          bodyStyle={{
-            background: "transparent",
-          }}
-          style={{
-            background: "transparent",
-            border: "1px solid #334155",
-            borderRadius: "8px", // Add rounded corners
-          }}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="w-full overflow-hidden"
         >
-          <Table
-            className="custom-table"
-            columns={classStateColumns}
-            dataSource={classStateData.map((item, index) => ({
-              ...item,
-              key: index,
-            }))}
-            bordered
-            pagination={false}
-            style={{
-              borderColor: "#334155",
-            }}
-            loading={{
-              spinning: loading,
-              size: "large",
-            }}
-            scroll={{ y: "24vh" }} // Adjust scroll height to account for header
-          />
-        </Card>
+          <Card
+            title={
+              <div className="flex items-center gap-3">
+                <span className="text-lg font-semibold text-white">
+                  Class State
+                </span>
+                <div className="h-2 w-2 animate-pulse rounded-full bg-green-400" />
+              </div>
+            }
+            className="overflow-hidden rounded-xl border-0 shadow-lg transition-shadow hover:shadow-xl"
+            headStyle={cardStyles.header}
+            bodyStyle={cardStyles.body}
+          >
+            <Table
+              columns={classStateColumns}
+              dataSource={classStateData.map((item, index) => ({
+                ...item,
+                key: index,
+              }))}
+              loading={loading}
+              pagination={false}
+              className="custom-table"
+              scroll={{ x: "30vw", y: "calc(55vh - 120px)" }}
+              size="large"
+            />
+          </Card>
+        </motion.div>
       )}
 
+      {/* Teacher Salary Table */}
       {(auth.user?.role === "teacher" ||
         auth.user?.role === "admin" ||
         auth.user?.role === "accountant") && (
-        <Card
-          className="h-[40vh] w-[82vw]"
-          headStyle={{
-            color: "white",
-            background: "#1E293B",
-            borderBottom: "1px solid #334155",
-          }}
-          bodyStyle={{
-            background: "transparent",
-          }}
-          style={{
-            background: "transparent",
-            border: "1px solid #334155",
-            borderRadius: "8px",
-          }}
-          title={
-            <div className="flex items-center justify-between gap-2">
-              <span>Teacher Salary</span>
-              <div className="flex items-center gap-2">
-                <RangePicker
-                  onChange={(dates) =>
-                    setDateRange(dates as [Dayjs | null, Dayjs | null])
-                  }
-                  value={dateRange}
-                  style={{
-                    backgroundColor: "#1E293B",
-                    borderColor: "#334155",
-                    color: "white",
-                  }}
-                />
-                <Button
-                  type="default"
-                  icon={<DownloadOutlined />}
-                  onClick={downloadCSV}
-                  style={{
-                    backgroundColor: "#1E293B",
-                    borderColor: "#334155",
-                    color: "white",
-                  }}
-                >
-                  Download CSV
-                </Button>
-              </div>
-            </div>
-          }
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="w-full overflow-hidden"
         >
-          <Table
-            className="custom-table"
-            bordered
-            columns={teacherSalaryColumns}
-            dataSource={teacherSalaryData.map((item, index) => ({
-              ...item,
-              key: index,
-            }))}
-            pagination={false}
-            loading={{
-              spinning: loading,
-              size: "large",
-            }}
-            style={{
-              borderColor: "#334155",
-              width: "100vw",
-            }}
-            scroll={{ y: "24vh" }}
-          />
-        </Card>
+          <Card
+            title={
+              <div className="flex items-center gap-3">
+                <span className="text-lg font-semibold text-white">
+                  Teacher Salary
+                </span>
+                <div className="h-2 w-2 animate-pulse rounded-full bg-blue-400" />
+              </div>
+            }
+            className="overflow-hidden rounded-xl border-0 shadow-lg transition-shadow hover:shadow-xl"
+            headStyle={cardStyles.header}
+            bodyStyle={cardStyles.body}
+          >
+            <Table
+              columns={teacherSalaryColumns}
+              dataSource={teacherSalaryData.map((item, index) => ({
+                ...item,
+                key: index,
+              }))}
+              loading={loading}
+              pagination={false}
+              className="custom-table"
+              scroll={{ x: "max-content", y: "calc(55vh - 120px)" }}
+              size="large"
+            />
+          </Card>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 }

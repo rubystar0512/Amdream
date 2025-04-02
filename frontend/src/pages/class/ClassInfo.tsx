@@ -1,13 +1,6 @@
 import React, { useState, useEffect } from "react";
-import {
-  Card,
-  Button,
-  Modal,
-  Label,
-  TextInput,
-  Textarea,
-} from "flowbite-react";
-import { Table, TableColumnsType } from "antd";
+import { Button, Modal, Label, TextInput, Textarea } from "flowbite-react";
+import { Card, Table, TableColumnsType } from "antd";
 import api from "../../config";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +8,7 @@ import { usePermissions } from "../../hooks/usePermission";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { useAuth } from "../../hooks/useAuth";
 import moment from "moment";
+import { motion } from "framer-motion";
 
 import { Button as AntButton } from "antd";
 import { EditOutlined } from "@ant-design/icons";
@@ -203,38 +197,77 @@ const ClassInfo: React.FC<{ studentId: string; studentName: string }> = ({
       key: "date",
       sorter: (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
       render: (text: string) => {
-        return moment(text).format("DD/MM/YYYY");
+        return (
+          <span className="font-medium text-gray-900 dark:text-white">
+            {moment(text).format("DD/MM/YYYY")}
+          </span>
+        );
       },
     },
     {
       title: "Teacher",
       dataIndex: "Teacher",
+      fixed: "left",
       key: "Teacher",
       render: (obj: any) => {
-        return obj.first_name + " " + obj.last_name;
+        return (
+          <span className="font-medium text-gray-900 dark:text-white">
+            {obj.first_name + " " + obj.last_name}
+          </span>
+        );
       },
     },
     {
       title: "Course",
       dataIndex: "course",
       key: "course",
+      fixed: "left",
       sorter: (a, b) => a.course.localeCompare(b.course),
+      render: (obj: any) => {
+        return (
+          <span className="font-medium text-gray-900 dark:text-white">
+            {obj}
+          </span>
+        );
+      },
     },
     {
       title: "Unit",
       dataIndex: "unit",
       key: "unit",
+      fixed: "left",
       sorter: (a, b) => a.unit.localeCompare(b.unit),
+      render: (obj: any) => {
+        return (
+          <span className="font-medium text-gray-900 dark:text-white">
+            {obj}
+          </span>
+        );
+      },
     },
     {
       title: "Can-do",
       dataIndex: "can_do",
       key: "can_do",
+      render: (obj: any) => {
+        return (
+          <span className="font-medium text-gray-900 dark:text-white">
+            {obj}
+          </span>
+        );
+      },
     },
     {
       title: "Notes",
       dataIndex: "notes",
       key: "notes",
+      render: (obj: any) => {
+        return (
+          <span className="font-medium text-gray-900 dark:text-white">
+            {obj}
+          </span>
+        );
+      },
     },
     {
       title: "Actions",
@@ -258,45 +291,85 @@ const ClassInfo: React.FC<{ studentId: string; studentName: string }> = ({
   if (permissionsLoading) {
     return <LoadingSpinner />;
   }
-
+  const cardStyles = {
+    header: {
+      background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)",
+      borderRadius: "12px 12px 0 0",
+      padding: "12px 16px", // Reduced padding for mobile
+      border: "none",
+      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+      "@media (min-width: 640px)": {
+        padding: "16px 24px",
+      },
+    },
+    body: {
+      padding: "10px", // Reduced padding for mobile
+      borderRadius: "0 0 12px 12px",
+      backgroundColor: "rgba(255, 255, 255, 0.1)",
+      height: "auto", // Changed from fixed height
+      maxHeight: "60vh",
+      "@media (min-width: 640px)": {
+        padding: "20px",
+      },
+    },
+  };
   return (
-    <Card className="max-h-[80vh] w-[78vw] overflow-auto">
-      <div className="overflow-x-auto shadow-md sm:rounded-lg">
-        <div className="mb-4 flex items-center gap-4">
-          {user?.role === "teacher" && (
-            <>
-              {
-                <button
-                  className={`inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium ${
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="z-0 flex w-full flex-col gap-4 overflow-y-auto p-3 md:p-6"
+    >
+      <Card
+        title={
+          <div className="flex items-center gap-3">
+            <span className="text-lg font-semibold text-white">Class</span>
+            <div className="h-2 w-2 animate-pulse rounded-full bg-green-400" />
+          </div>
+        }
+        className="overflow-hidden rounded-xl border-0 shadow-lg transition-shadow hover:shadow-xl"
+        headStyle={cardStyles.header}
+        bodyStyle={cardStyles.body}
+        extra={
+          <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row">
+            {user?.role === "teacher" && (
+              <div className="xs:flex-row flex flex-col gap-2">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-sm font-medium ${
                     !selectedStudent
                       ? "cursor-not-allowed bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500"
-                      : "bg-white text-gray-500 hover:bg-gray-100 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
-                  } focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:focus:ring-gray-700`}
-                  type="button"
+                      : "bg-gradient-to-r from-blue-900 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
+                  } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
                   onClick={() => setOpenModal(true)}
                   disabled={!selectedStudent}
                 >
-                  Add new class info
-                </button>
-              }
-            </>
-          )}
-        </div>
-
-        {
+                  + Add Class Info
+                </motion.button>
+              </div>
+            )}
+          </div>
+        }
+      >
+        <div className="custom-table overflow-hidden rounded-lg shadow-md">
           <Table
+            style={{ width: "100%" }}
             columns={columns}
             dataSource={classInfos}
             pagination={false}
-            loading={loading}
+            loading={{
+              spinning: loading,
+              size: "large",
+            }}
+            scroll={{ x: "max-content", y: "calc(65vh - 200px)" }}
+            size="large"
             className="custom-table"
-            scroll={{ y: "50vh" }}
-            sticky
           />
-        }
-      </div>
+        </div>
+      </Card>
 
-      {/* Add Class Info Modal */}
+      {/* Add/Edit Class Info Modal */}
       <Modal
         show={openModal}
         size="md"
@@ -308,9 +381,9 @@ const ClassInfo: React.FC<{ studentId: string; studentName: string }> = ({
         popup
         style={{ zIndex: "1000" }}
       >
-        <Modal.Header />
+        <Modal.Header className="border-b border-gray-200 dark:border-gray-700" />
         <Modal.Body>
-          <div className="space-y-6">
+          <div className="space-y-4">
             <h3 className="text-xl font-medium text-gray-900 dark:text-white">
               {isEditing ? "Edit class info" : "Add new class info"}
             </h3>
@@ -323,6 +396,7 @@ const ClassInfo: React.FC<{ studentId: string; studentName: string }> = ({
                 required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
+                className="w-full rounded-lg"
               />
             </div>
 
@@ -334,6 +408,7 @@ const ClassInfo: React.FC<{ studentId: string; studentName: string }> = ({
                 required
                 value={course}
                 onChange={(e) => setCourse(e.target.value)}
+                className="w-full rounded-lg"
               />
             </div>
 
@@ -345,6 +420,7 @@ const ClassInfo: React.FC<{ studentId: string; studentName: string }> = ({
                 required
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
+                className="w-full rounded-lg"
               />
             </div>
 
@@ -356,6 +432,7 @@ const ClassInfo: React.FC<{ studentId: string; studentName: string }> = ({
                 required
                 value={canDo}
                 onChange={(e) => setCanDo(e.target.value)}
+                className="w-full rounded-lg"
               />
             </div>
 
@@ -366,18 +443,21 @@ const ClassInfo: React.FC<{ studentId: string; studentName: string }> = ({
                 rows={3}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
+                className="w-full rounded-lg"
               />
             </div>
 
-            <div className="flex flex-auto">
+            <div className="xs:flex-row flex flex-col gap-2 pt-4">
               <Button
-                className="flex-none"
+                className="xs:w-auto w-full"
+                gradientDuoTone="purpleToBlue"
                 onClick={isEditing ? updateClassInfo : addNewClassInfo}
               >
                 {isEditing ? "Update" : "Add"}
               </Button>
               <Button
-                className="ml-2 flex-none"
+                className="xs:w-auto w-full"
+                color="gray"
                 onClick={() => {
                   setOpenModal(false);
                   setIsEditing(false);
@@ -390,7 +470,7 @@ const ClassInfo: React.FC<{ studentId: string; studentName: string }> = ({
           </div>
         </Modal.Body>
       </Modal>
-    </Card>
+    </motion.div>
   );
 };
 

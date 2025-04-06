@@ -190,103 +190,111 @@ const ClassInfo: React.FC<{ studentId: string; studentName: string }> = ({
     }
   };
 
-  const columns: TableColumnsType<ClassInfo> = [
-    {
-      title: "Date",
-      dataIndex: "date",
-      key: "date",
-      sorter: (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-      render: (text: string) => {
-        return (
-          <span className="font-medium text-gray-900 dark:text-white">
-            {moment(text).format("DD/MM/YYYY")}
-          </span>
-        );
-      },
-    },
-    {
-      title: "Teacher",
-      dataIndex: "Teacher",
-      fixed: "left",
-      key: "Teacher",
-      render: (obj: any) => {
-        return (
-          <span className="font-medium text-gray-900 dark:text-white">
-            {obj.first_name + " " + obj.last_name}
-          </span>
-        );
-      },
-    },
-    {
-      title: "Course",
-      dataIndex: "course",
-      key: "course",
-      fixed: "left",
-      sorter: (a, b) => a.course.localeCompare(b.course),
-      render: (obj: any) => {
-        return (
-          <span className="font-medium text-gray-900 dark:text-white">
-            {obj}
-          </span>
-        );
-      },
-    },
-    {
-      title: "Unit",
-      dataIndex: "unit",
-      key: "unit",
-      fixed: "left",
-      sorter: (a, b) => a.unit.localeCompare(b.unit),
-      render: (obj: any) => {
-        return (
-          <span className="font-medium text-gray-900 dark:text-white">
-            {obj}
-          </span>
-        );
-      },
-    },
-    {
-      title: "Can-do",
-      dataIndex: "can_do",
-      key: "can_do",
-      render: (obj: any) => {
-        return (
-          <span className="font-medium text-gray-900 dark:text-white">
-            {obj}
-          </span>
-        );
-      },
-    },
-    {
-      title: "Notes",
-      dataIndex: "notes",
-      key: "notes",
-      render: (obj: any) => {
-        return (
-          <span className="font-medium text-gray-900 dark:text-white">
-            {obj}
-          </span>
-        );
-      },
-    },
-    {
-      title: "Actions",
-      key: "actions",
-      render: (_: any, record: any) => {
-        if (user?.id === record?.Teacher?.id) {
+  const columns: TableColumnsType<ClassInfo> = (
+    [
+      {
+        title: "Date",
+        dataIndex: "date",
+        key: "date",
+        sorter: (a, b) =>
+          new Date(a.date).getTime() - new Date(b.date).getTime(),
+        render: (text: string) => {
           return (
-            <AntButton
-              type="primary"
-              icon={<EditOutlined />}
-              size="small"
-              onClick={() => handleEdit(record)}
-            />
+            <span className="font-medium text-gray-900 dark:text-white">
+              {moment(text).format("DD/MM/YYYY")}
+            </span>
           );
-        }
-        return null;
+        },
       },
-    },
-  ];
+      {
+        title: "Teacher",
+        dataIndex: "Teacher",
+        fixed: "left",
+        key: "Teacher",
+        render: (obj: any) => {
+          return (
+            <span className="font-medium text-gray-900 dark:text-white">
+              {obj.first_name + " " + obj.last_name}
+            </span>
+          );
+        },
+      },
+      {
+        title: "Course",
+        dataIndex: "course",
+        key: "course",
+
+        sorter: (a, b) => a.course.localeCompare(b.course),
+        render: (obj: any) => {
+          return (
+            <span className="font-medium text-gray-900 dark:text-white">
+              {obj}
+            </span>
+          );
+        },
+      },
+      {
+        title: "Unit",
+        dataIndex: "unit",
+        key: "unit",
+
+        sorter: (a, b) => a.unit.localeCompare(b.unit),
+        render: (obj: any) => {
+          return (
+            <span className="font-medium text-gray-900 dark:text-white">
+              {obj}
+            </span>
+          );
+        },
+      },
+      {
+        title: "Can-do",
+        dataIndex: "can_do",
+        key: "can_do",
+        render: (obj: any) => {
+          return (
+            <span className="font-medium text-gray-900 dark:text-white">
+              {obj}
+            </span>
+          );
+        },
+      },
+      {
+        title: "Notes",
+        dataIndex: "notes",
+        key: "notes",
+        render: (obj: any) => {
+          return (
+            <span className="font-medium text-gray-900 dark:text-white">
+              {obj}
+            </span>
+          );
+        },
+      },
+    ] as TableColumnsType<ClassInfo>
+  ).concat(
+    user?.role === "teacher"
+      ? [
+          {
+            title: "Actions",
+            key: "actions",
+            render: (_: any, record: any) => {
+              if (user?.id === record?.Teacher?.id) {
+                return (
+                  <AntButton
+                    type="primary"
+                    icon={<EditOutlined />}
+                    size="small"
+                    onClick={() => handleEdit(record)}
+                  />
+                );
+              }
+              return null;
+            },
+          },
+        ]
+      : [],
+  );
 
   if (permissionsLoading) {
     return <LoadingSpinner />;
@@ -307,7 +315,7 @@ const ClassInfo: React.FC<{ studentId: string; studentName: string }> = ({
       borderRadius: "0 0 12px 12px",
       backgroundColor: "rgba(255, 255, 255, 0.1)",
       height: "auto", // Changed from fixed height
-      maxHeight: "60vh",
+      maxHeight: "100vh",
       "@media (min-width: 640px)": {
         padding: "20px",
       },
@@ -318,7 +326,7 @@ const ClassInfo: React.FC<{ studentId: string; studentName: string }> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="z-0 flex w-full flex-col gap-4 overflow-y-auto p-3 md:p-6"
+      className="z-0 flex h-auto w-full flex-col gap-4 overflow-y-auto p-3 md:p-6"
     >
       <Card
         title={
@@ -333,7 +341,7 @@ const ClassInfo: React.FC<{ studentId: string; studentName: string }> = ({
         extra={
           <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row">
             {user?.role === "teacher" && (
-              <div className="xs:flex-row flex flex-col gap-2">
+              <div className="flex flex-col gap-2 xs:flex-row">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -447,16 +455,16 @@ const ClassInfo: React.FC<{ studentId: string; studentName: string }> = ({
               />
             </div>
 
-            <div className="xs:flex-row flex flex-col gap-2 pt-4">
+            <div className="flex flex-col gap-2 pt-4 xs:flex-row">
               <Button
-                className="xs:w-auto w-full"
+                className="w-full xs:w-auto"
                 gradientDuoTone="purpleToBlue"
                 onClick={isEditing ? updateClassInfo : addNewClassInfo}
               >
                 {isEditing ? "Update" : "Add"}
               </Button>
               <Button
-                className="xs:w-auto w-full"
+                className="w-full xs:w-auto"
                 color="gray"
                 onClick={() => {
                   setOpenModal(false);

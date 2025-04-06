@@ -189,7 +189,7 @@ export default function Students() {
         title: "No",
         dataIndex: "index",
         key: "index",
-        width: "8%",
+        width: "5%",
         fixed: "left",
         render: (_: any, __: any, index: number) => (
           <span className="text-gray-600 dark:text-gray-400">{index + 1}</span>
@@ -199,6 +199,7 @@ export default function Students() {
         title: "First Name",
         dataIndex: "first_name",
         key: "first_name",
+        width: "15%",
         fixed: "left",
         sorter: (a: any, b: any) => a.first_name.localeCompare(b.first_name),
         render: (text: string) => (
@@ -211,6 +212,7 @@ export default function Students() {
         title: "Last Name",
         dataIndex: "last_name",
         key: "last_name",
+        width: "15%",
         fixed: "left",
         sorter: (a: any, b: any) => a.last_name.localeCompare(b.last_name),
         render: (text: string) => (
@@ -223,6 +225,7 @@ export default function Students() {
         title: "Email",
         dataIndex: "email",
         key: "email",
+        width: "20%",
         sorter: (a: any, b: any) => a.email.localeCompare(b.email),
         render: (text: string) => (
           <span className="font-medium text-gray-900 dark:text-white">
@@ -234,6 +237,7 @@ export default function Students() {
         title: "Note",
         dataIndex: "note",
         key: "note",
+        width: "25%",
         render: (_: any, record: any) => (
           <div className="text-center">
             <span className="font-medium text-gray-900 dark:text-white">
@@ -249,6 +253,7 @@ export default function Students() {
           {
             title: "Action",
             key: "action",
+            width: "20%",
             render: (_: any, record: any) => (
               <Space size="middle">
                 {permissions.update && (

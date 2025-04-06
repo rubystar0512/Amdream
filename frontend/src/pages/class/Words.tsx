@@ -135,78 +135,86 @@ const Words: React.FC<{ studentId: string; studentName: string }> = ({
     }
   };
 
-  const columns: TableColumnsType<any> = [
-    {
-      title: "Date",
-      dataIndex: "createdAt",
-      key: "date",
-      sorter: (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-      render: (text: string) => {
-        return (
-          <span className="font-medium text-gray-900 dark:text-white">
-            {moment(text).format("DD/MM/YYYY")}
+  const columns: TableColumnsType<any> = (
+    [
+      {
+        title: "No",
+        dataIndex: "index",
+        key: "index",
+        width: "8%",
+        render: (_: any, __: any, index: number) => (
+          <span className="font-medium text-gray-600 dark:text-gray-400">
+            {index + 1}
           </span>
-        );
+        ),
       },
-    },
-    {
-      title: "Teacher",
-      dataIndex: "Teacher",
-      key: "Teacher",
-      render: (obj: any) => {
-        return (
-          <span className="dark:text-green font-medium text-green-400">
-            {obj.first_name + " " + obj.last_name}
-          </span>
-        );
-      },
-    },
-    {
-      title: "English",
-      dataIndex: "english_word",
-      key: "english",
-      fixed: "left",
-      sorter: (a, b) => a.english_word.localeCompare(b.english_word),
-      render: (obj: any) => {
-        return (
-          <span className="dark:text-red font-medium text-red-400">{obj}</span>
-        );
-      },
-    },
-    {
-      title: "Translation",
-      dataIndex: "translation_word",
-      fixed: "left",
-      key: "translation",
-      sorter: (a, b) => a.translation_word.localeCompare(b.translation_word),
-      render: (obj: any) => {
-        return (
-          <span className="dark:text-blue font-medium text-blue-400">
-            {obj}
-          </span>
-        );
-      },
-    },
-    {
-      title: "Actions",
-      key: "actions",
-      render: (_, record) => {
-        if (user?.id === record.Teacher.id) {
+      {
+        title: "Words",
+        key: "words",
+        fixed: "left",
+        render: (obj: any) => {
           return (
-            <div className="flex gap-2">
-              <AntButton
-                type="primary"
-                icon={<EditOutlined />}
-                size="small"
-                onClick={() => handleEdit(record)}
-              />
-            </div>
+            <>
+              <div className="dark:red-white text-lg  text-red-400">
+                {obj.english_word}
+              </div>
+              <div className="dark:blue-white text-lg  text-blue-400">
+                {obj.translation_word}
+              </div>
+            </>
           );
-        }
-        return null;
+        },
       },
-    },
-  ];
+    ] as TableColumnsType<any>
+  ).concat(
+    user?.role === "teacher"
+      ? [
+          {
+            title: "Date",
+            dataIndex: "createdAt",
+            key: "date",
+            sorter: (a, b) =>
+              new Date(a.date).getTime() - new Date(b.date).getTime(),
+            render: (text: string) => {
+              return (
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {moment(text).format("DD/MM/YYYY")}
+                </span>
+              );
+            },
+          },
+          {
+            title: "Teacher",
+            dataIndex: "Teacher",
+            key: "Teacher",
+            render: (obj: any) => {
+              return (
+                <span className="dark:text-green font-medium text-green-400">
+                  {obj.first_name + " " + obj.last_name}
+                </span>
+              );
+            },
+          },
+          {
+            title: "Actions",
+            key: "actions",
+            render: (_: any, record: any) => {
+              if (user?.id === record?.Teacher?.id) {
+                return (
+                  <AntButton
+                    type="primary"
+                    icon={<EditOutlined />}
+                    size="small"
+                    onClick={() => handleEdit(record)}
+                  />
+                );
+              }
+              return null;
+            },
+          },
+        ]
+      : [],
+  );
 
   const handleEdit = (record: any) => {
     setEditingRecord(record);
@@ -269,7 +277,7 @@ const Words: React.FC<{ studentId: string; studentName: string }> = ({
       borderRadius: "0 0 12px 12px",
       backgroundColor: "rgba(255, 255, 255, 0.1)",
       height: "auto", // Changed from fixed height
-      maxHeight: "60vh",
+      maxHeight: "100vh",
       "@media (min-width: 640px)": {
         padding: "20px",
       },
@@ -281,7 +289,7 @@ const Words: React.FC<{ studentId: string; studentName: string }> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="z-0 flex w-full flex-col gap-4 overflow-y-auto p-3 md:p-6"
+      className="z-0 flex h-auto w-full flex-col  overflow-y-auto "
     >
       <Card
         title={
@@ -296,7 +304,7 @@ const Words: React.FC<{ studentId: string; studentName: string }> = ({
         extra={
           <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row">
             {user?.role === "teacher" && (
-              <div className="xs:flex-row flex flex-col gap-2">
+              <div className="flex flex-col gap-2 xs:flex-row">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -374,16 +382,16 @@ const Words: React.FC<{ studentId: string; studentName: string }> = ({
               />
             </div>
 
-            <div className="xs:flex-row flex flex-col gap-2 pt-4">
+            <div className="flex flex-col gap-2 pt-4 xs:flex-row">
               <Button
-                className="xs:w-auto w-full"
+                className="w-full xs:w-auto"
                 gradientDuoTone="purpleToBlue"
                 onClick={isEditing ? updateWord : addNewWord}
               >
                 {isEditing ? "Update" : "Add"}
               </Button>
               <Button
-                className="xs:w-auto w-full"
+                className="w-full xs:w-auto"
                 color="gray"
                 onClick={() => {
                   setOpenModal(false);

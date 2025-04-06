@@ -225,7 +225,7 @@ export default function UserLayout() {
       {/* Enhanced Main Content */}
       <div className="min-h-screen pt-16 transition-all duration-300 sm:ml-64">
         <div className="container mx-auto p-4">
-          <div className="rounded-lg bg-white/50 p-6 shadow-md backdrop-blur-sm dark:bg-gray-800/50">
+          <div className="rounded-lg bg-white/50  shadow-md backdrop-blur-sm dark:bg-gray-800/50 md:p-6">
             <Outlet />
           </div>
         </div>

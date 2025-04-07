@@ -69,7 +69,7 @@ const PaymentComponent: React.FC = () => {
 
   const [paymentDate, setPaymentDate] = useState<Dayjs | null>(null);
 
-  let payMethods = ["Credit card", "PayPal", "Zelle", "CashApp"];
+  let payMethods = ["Credit card", "PayPal", "Zelle", "CashApp", "Stripe"];
 
   const cardStyles = {
     header: {
@@ -422,7 +422,7 @@ const PaymentComponent: React.FC = () => {
         extra={
           <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row">
             {/* Action Buttons Container */}
-            <div className="xs:flex-row flex flex-col gap-2">
+            <div className="flex flex-col gap-2 xs:flex-row">
               {permissions.create && (
                 <motion.button
                   whileHover={{ scale: 1.02 }}
@@ -590,16 +590,16 @@ const PaymentComponent: React.FC = () => {
               </div>
             </div>
 
-            <div className="xs:flex-row flex flex-col gap-2 pt-4">
+            <div className="flex flex-col gap-2 pt-4 xs:flex-row">
               <Button
-                className="xs:w-auto w-full"
+                className="w-full xs:w-auto"
                 gradientDuoTone="purpleToBlue"
                 onClick={createPayment}
               >
                 Add Payment
               </Button>
               <Button
-                className="xs:w-auto w-full"
+                className="w-full xs:w-auto"
                 color="gray"
                 onClick={() => setOpenModal(false)}
               >
@@ -724,16 +724,16 @@ const PaymentComponent: React.FC = () => {
                 </div>
               </div>
 
-              <div className="xs:flex-row flex flex-col gap-2 pt-4">
+              <div className="flex flex-col gap-2 pt-4 xs:flex-row">
                 <Button
-                  className="xs:w-auto w-full"
+                  className="w-full xs:w-auto"
                   gradientDuoTone="purpleToBlue"
                   onClick={updatePayment}
                 >
                   Update
                 </Button>
                 <Button
-                  className="xs:w-auto w-full"
+                  className="w-full xs:w-auto"
                   color="gray"
                   onClick={() => setOpenEditModal(false)}
                 >

@@ -21,21 +21,22 @@ Lesson.belongsTo(User, { as: "Teacher", foreignKey: "teacher_id" });
 Payment.belongsTo(User, { as: "Student", foreignKey: "student_id" });
 StudentInfo.belongsTo(User, { as: "Student", foreignKey: "student_id" });
 
-Calendar.belongsTo(User, { as: "Student", foreignKey: "student_id" });
-Calendar.belongsTo(User, { as: "Teacher", foreignKey: "teacher_id" });
-Calendar.belongsTo(ClassType, { foreignKey: "class_type_id" });
+Calendar.belongsTo(User, {
+  as: "student",
+  foreignKey: "student_id",
+});
+Calendar.belongsTo(User, {
+  as: "teacher",
+  foreignKey: "teacher_id",
+});
 User.hasMany(Calendar, {
-  as: "StudentCalendars",
+  as: "studentCalendars",
   foreignKey: "student_id",
   onDelete: "CASCADE",
 });
 User.hasMany(Calendar, {
-  as: "TeacherCalendars",
+  as: "teacherCalendars",
   foreignKey: "teacher_id",
-  onDelete: "CASCADE",
-});
-ClassType.hasMany(Calendar, {
-  foreignKey: "class_type_id",
   onDelete: "CASCADE",
 });
 

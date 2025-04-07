@@ -391,3 +391,21 @@ textarea::placeholder {
 .ant-drawer {
   z-index: 500 !important;
 }
+
+.calendar-modal {
+  .ant-modal-content {
+    background: #1c1c1c !important;
+  }
+
+  .ant-modal-header {
+    background: #1c1c1c !important;
+    .ant-modal-title {
+      color: white !important;
+    }
+  }
+  .ant-modal-close-icon {
+    svg {
+      color: white !important;
+    }
+  }
+}

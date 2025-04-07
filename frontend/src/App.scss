@@ -1,0 +1,15 @@
+@import "../node_modules/@bryntum/calendar/calendar.classic-dark.css";
+
+.calendar-container {
+  height: 100vh;
+}
+
+.b-dayview-day-detail {
+  background: none !important;
+}
+.b-weeks-container {
+  background: none !important;
+}
+.b-toolbar-content div div div div {
+  background: none !important;
+}

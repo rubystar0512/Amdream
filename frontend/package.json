@@ -13,13 +13,20 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit"
   },
+  "postinstall": {
+    "node_modules/@bryntum/calendar/*.css*": "copy public/themes/",
+    "node_modules/@bryntum/calendar/fonts/*": "copy public/themes/fonts/"
+  },
   "dependencies": {
+    "@bryntum/calendar": "npm:@bryntum/calendar-trial@^6.1.9",
+    "@bryntum/calendar-react": "^6.1.9",
     "antd": "^5.24.2",
     "axios": "^1.7.9",
     "flowbite-react": "^0.8.0",
     "framer-motion": "^12.5.0",
     "moment": "^2.30.1",
     "papaparse": "^5.5.2",
+    "postinstall": "^0.11.1",
     "react": "^18.2.0",
     "react-big-calendar": "^1.18.0",
     "react-dom": "^18.2.0",
@@ -44,6 +51,7 @@
     "eslint-plugin-tailwindcss": "^3.15.1",
     "postcss": "^8.4.37",
     "prettier-plugin-tailwindcss": "^0.5.12",
+    "sass": "^1.86.3",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.4.2",
     "vite": "^5.2.0"

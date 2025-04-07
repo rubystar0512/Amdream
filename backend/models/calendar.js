@@ -9,8 +9,8 @@ const Calendar = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
-    class_type_id: {
-      type: DataTypes.INTEGER,
+    class_type: {
+      type: DataTypes.STRING,
       allowNull: false,
     },
     student_id: {
@@ -25,13 +25,21 @@ const Calendar = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    class_date: {
+    payment_status: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    startDate: {
       type: DataTypes.DATE,
       allowNull: false,
     },
-    repeat: {
-      type: DataTypes.BOOLEAN,
+    endDate: {
+      type: DataTypes.DATE,
       allowNull: false,
+    },
+    recurrenceRule: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
   },
   {

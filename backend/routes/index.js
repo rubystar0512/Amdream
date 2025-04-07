@@ -12,6 +12,7 @@ const paymentController = require("../controllers/paymentController");
 const userController = require("../controllers/userController");
 const wordController = require("../controllers/wordController");
 const classInfoController = require("../controllers/classInfoController");
+const calendarController = require("../controllers/calendarController");
 
 router.post("/auth/login", authController.login);
 router.post("/auth/signup", authController.signup);
@@ -134,5 +135,8 @@ router.put(
   authMiddleware,
   classInfoController.updateClassInfo
 );
+
+router.get("/calendar/events", calendarController.getAllEvents);
+router.post("/calendar/events", calendarController.saveEvents);
 
 module.exports = router;

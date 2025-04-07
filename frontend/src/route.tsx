@@ -18,13 +18,16 @@ const CalendarLazy = lazy(() => import("./pages/calendar/Calendar"));
 const NotFoundLazy = lazy(() => import("./components/NotFound"));
 const ClassInfoLazy = lazy(() => import("./pages/class/ClassInfo"));
 const WordsLazy = lazy(() => import("./pages/class/Words"));
+const ErrorPageLazy = lazy(() => import("./components/ErrorPage"));
 
 const routes = createBrowserRouter([
   {
     element: <UserLayoutLazy />,
+    errorElement: <ErrorPageLazy />,
     children: [
       {
         path: "/dashboard",
+        errorElement: <ErrorPageLazy />,
         element: (
           <Suspense fallback={<LoadingSpinner />}>
             <DashboardLazy />
@@ -33,6 +36,7 @@ const routes = createBrowserRouter([
       },
       {
         path: "/users/students",
+        errorElement: <ErrorPageLazy />,
         element: (
           <Suspense fallback={<LoadingSpinner />}>
             <StudentsLazy />
@@ -41,6 +45,7 @@ const routes = createBrowserRouter([
       },
       {
         path: "/users/teachers",
+        errorElement: <ErrorPageLazy />,
         element: (
           <Suspense fallback={<LoadingSpinner />}>
             <TeachersLazy />
@@ -49,6 +54,7 @@ const routes = createBrowserRouter([
       },
       {
         path: "/users/manage",
+        errorElement: <ErrorPageLazy />,
         element: (
           <Suspense fallback={<LoadingSpinner />}>
             <ManageLazy />
@@ -57,6 +63,7 @@ const routes = createBrowserRouter([
       },
       {
         path: "/class/manage",
+        errorElement: <ErrorPageLazy />,
         element: (
           <Suspense fallback={<LoadingSpinner />}>
             <ClassManageLazy />
@@ -65,6 +72,7 @@ const routes = createBrowserRouter([
       },
       {
         path: "/class/type",
+        errorElement: <ErrorPageLazy />,
         element: (
           <Suspense fallback={<LoadingSpinner />}>
             <ClassTypeLazy />
@@ -73,6 +81,7 @@ const routes = createBrowserRouter([
       },
       {
         path: "/payments",
+        errorElement: <ErrorPageLazy />,
         element: (
           <Suspense fallback={<LoadingSpinner />}>
             <PaymentStLazy />
@@ -81,6 +90,7 @@ const routes = createBrowserRouter([
       },
       {
         path: "/calendar",
+        errorElement: <ErrorPageLazy />,
         element: (
           <Suspense fallback={<LoadingSpinner />}>
             <CalendarLazy />
@@ -89,6 +99,7 @@ const routes = createBrowserRouter([
       },
       {
         path: "/class/info",
+        errorElement: <ErrorPageLazy />,
         element: (
           <Suspense fallback={<LoadingSpinner />}>
             <ClassInfoLazy studentId={""} studentName={""} />
@@ -97,6 +108,7 @@ const routes = createBrowserRouter([
       },
       {
         path: "/class/words",
+        errorElement: <ErrorPageLazy />,
         element: (
           <Suspense fallback={<LoadingSpinner />}>
             <WordsLazy studentId={""} studentName={""} />
@@ -107,6 +119,7 @@ const routes = createBrowserRouter([
   },
   {
     path: "/login",
+    errorElement: <ErrorPageLazy />,
     element: (
       <Suspense fallback={<LoadingSpinner />}>
         <SignInLazy />
@@ -115,6 +128,7 @@ const routes = createBrowserRouter([
   },
   {
     path: "/register",
+    errorElement: <ErrorPageLazy />,
     element: (
       <Suspense fallback={<LoadingSpinner />}>
         <SignUpLazy />
@@ -123,6 +137,7 @@ const routes = createBrowserRouter([
   },
   {
     path: "/forgot-password",
+    errorElement: <ErrorPageLazy />,
     element: (
       <Suspense fallback={<LoadingSpinner />}>
         <ForgotPasswordLazy />
@@ -131,6 +146,7 @@ const routes = createBrowserRouter([
   },
   {
     path: "/reset-password",
+    errorElement: <ErrorPageLazy />,
     element: (
       <Suspense fallback={<LoadingSpinner />}>
         <ResetPasswordLazy />
@@ -139,10 +155,12 @@ const routes = createBrowserRouter([
   },
   {
     path: "/",
+    errorElement: <ErrorPageLazy />,
     element: <Navigate to="/login" replace />,
   },
   {
     path: "*",
+    errorElement: <ErrorPageLazy />,
     element: (
       <Suspense fallback={<LoadingSpinner />}>
         <NotFoundLazy />

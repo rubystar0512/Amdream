@@ -11,7 +11,7 @@ const Calendar = sequelize.define(
     },
     class_type: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     student_id: {
       type: DataTypes.INTEGER,
@@ -27,7 +27,7 @@ const Calendar = sequelize.define(
     },
     payment_status: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     startDate: {
       type: DataTypes.DATE,

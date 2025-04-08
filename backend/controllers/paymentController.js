@@ -166,7 +166,7 @@ exports.dailyReport = async () => {
     return payments.map((payment, key) => ({
       id: key + 1,
       student_name: `${payment.Student.first_name} ${payment.Student.last_name}`,
-      class_type: payment.ClassType.name,
+      class_type: payment.class_type.name,
       amount: payment.amount,
       num_lessons: payment.num_lessons,
       payment_method: payment.payment_method,

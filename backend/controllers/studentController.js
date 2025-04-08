@@ -145,7 +145,11 @@ exports.dailyReport = async () => {
   try {
     const students = await User.findAll({
       where: { role_id: user_role.student },
-      include: { model: StudentInfo, attributes: ["note"] },
+      include: {
+        model: StudentInfo,
+        as: "student_infos",
+        attributes: ["note"],
+      },
     });
 
     return students.map((student, key) => ({

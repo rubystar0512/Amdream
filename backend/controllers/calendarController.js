@@ -37,7 +37,7 @@ exports.getAllEvents = async (req, res) => {
       id: event.id,
       startDate: event.startDate.toISOString(),
       endDate: event.endDate.toISOString(),
-      name: `${event.class_status} - ${event.student.first_name} ${event.student.last_name}`,
+      name: `${event.student.first_name} ${event.student.last_name} / ${event.class_type} / ${event.payment_status}`,
       student_name: event.student_id.toString(),
       resourceId: event.teacher_id.toString(),
       allDay: false,
@@ -56,6 +56,9 @@ exports.getAllEvents = async (req, res) => {
       events: {
         rows: events,
       },
+      timeRanges: {
+        rows: [],
+      },
     };
 
     res.status(200).json(response);
@@ -70,72 +73,80 @@ exports.getAllEvents = async (req, res) => {
 
 exports.saveEvents = async (req, res) => {
   try {
-    const { added, updated, removed } = req.body?.events;
-    if (added?.length) {
-      await Promise.all(
-        added.map(async (event, key) => {
-          await Calendar.create({
-            class_type: event.class_type,
+    if (req.body?.events) {
+      const { added, updated, removed } = req.body?.events;
+      if (added?.length) {
+        await Promise.all(
+          added.map(async (event, key) => {
+            await Calendar.create({
+              class_type: event.class_type,
 
-            student_id: parseInt(event.student_name),
+              student_id: parseInt(event.student_name),
 
-            teacher_id: parseInt(event.resourceId),
+              teacher_id: parseInt(
+                event.resourceId ||
+                  req.body?.assignments?.added[key]?.resourceId
+              ),
 
-            class_status: event.class_status,
+              class_status: event.class_status,
 
-            payment_status: event.payment_status,
+              payment_status: event.payment_status,
 
-            startDate: event.startDate,
+              startDate: event.startDate,
 
-            endDate: event.endDate,
+              endDate: event.endDate,
 
-            recurrenceRule: event.recurrenceRule,
-          });
-        })
-      );
-    }
-
-    if (updated?.length) {
-      await Promise.all(
-        updated.map(async (event) => {
-          // Create an update object with only the fields that exist in the event
-          const updateFields = {};
-
-          if (event.class_type !== undefined)
-            updateFields.class_type = event.class_type;
-          if (event.student_name !== undefined)
-            updateFields.student_id = parseInt(event.student_name);
-          if (event.resourceId !== undefined)
-            updateFields.teacher_id = parseInt(event.resourceId);
-          if (event.class_status !== undefined)
-            updateFields.class_status = event.class_status;
-          if (event.payment_status !== undefined)
-            updateFields.payment_status = event.payment_status;
-          if (event.startDate !== undefined)
-            updateFields.startDate = event.startDate;
-          if (event.endDate !== undefined) updateFields.endDate = event.endDate;
-          if (event.recurrenceRule !== undefined)
-            updateFields.recurrenceRule = event.recurrenceRule;
-
-          // Only perform update if there are fields to update
-          if (Object.keys(updateFields).length > 0) {
-            await Calendar.update(updateFields, {
-              where: { id: event.id },
+              recurrenceRule: event.recurrenceRule,
             });
-          }
-        })
-      );
-    }
+          })
+        );
+      }
 
-    if (removed?.length) {
-      await Calendar.destroy({
-        where: {
-          id: removed.map((event) => event.id),
-        },
-      });
-    }
+      if (updated?.length) {
+        await Promise.all(
+          updated.map(async (event) => {
+            // Create an update object with only the fields that exist in the event
+            const updateFields = {};
 
-    res.json({ success: true });
+            if (event.class_type !== undefined)
+              updateFields.class_type = event.class_type;
+            if (event.student_name !== undefined)
+              updateFields.student_id = parseInt(event.student_name);
+            if (event.resourceId !== undefined)
+              updateFields.teacher_id = parseInt(event.resourceId);
+            if (event.class_status !== undefined)
+              updateFields.class_status = event.class_status;
+            if (event.payment_status !== undefined)
+              updateFields.payment_status = event.payment_status;
+            if (event.startDate !== undefined)
+              updateFields.startDate = event.startDate;
+            if (event.endDate !== undefined)
+              updateFields.endDate = event.endDate;
+            if (event.recurrenceRule !== undefined)
+              updateFields.recurrenceRule = event.recurrenceRule;
+
+            // Only perform update if there are fields to update
+            if (Object.keys(updateFields).length > 0) {
+              await Calendar.update(updateFields, {
+                where: { id: event.id },
+              });
+            }
+          })
+        );
+      }
+
+      if (removed?.length) {
+        await Calendar.destroy({
+          where: {
+            id: removed.map((event) => event.id),
+          },
+        });
+      }
+
+      res.json({ success: true });
+    } else {
+      res.json({ success: true });
+    }
   } catch (error) {
     console.error("Error saving event:", error);
     res.status(500).json({

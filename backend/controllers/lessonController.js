@@ -177,7 +177,7 @@ exports.dailyReport = async () => {
       id: key + 1,
       student_name: `${lesson.Student.first_name} ${lesson.Student.last_name}`,
       teacher_name: `${lesson.Teacher.first_name} ${lesson.Teacher.last_name}`,
-      class_type: lesson.ClassType.name,
+      class_type: lesson.class_type.name,
       class_date: moment(lesson.class_date).format("DD/MM/YYYY"),
       created_at: moment(lesson.createdAt).format("DD/MM/YYYY"),
       updated_at: moment(lesson.updatedAt).format("DD/MM/YYYY"),

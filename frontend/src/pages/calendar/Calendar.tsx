@@ -36,29 +36,36 @@ function Calendar() {
         ],
       },
       listeners: {
-        beforeLoad: (data: any) => {
+        beforeLoadApply: (data: any) => {
           const response = data?.response;
-          if (!isManager && response?.events) {
-            response.events = response.events.filter(
-              (event: any) => event.teacherId === auth.user?.id,
-            );
+
+          if (!isManager && auth.user?.id) {
+            if (response?.resources?.rows) {
+              response.resources.rows = response.resources.rows.filter(
+                (resource: any) =>
+                  parseInt(resource.id) === parseInt(auth.user?.id || "0"),
+              );
+            }
+            if (response?.events?.rows) {
+              response.events.rows = response.events.rows.filter(
+                (event: any) =>
+                  parseInt(event.resourceId) === parseInt(auth.user?.id || "0"),
+              );
+            }
           }
+
           return response;
         },
       },
+
       transport: {
         load: {
           url: `${api.defaults.baseURL}/calendar/events`,
           method: "GET",
         },
-        sync: {
-          url: `${api.defaults.baseURL}/calendar/events`,
-          method: "POST",
-        },
       },
       autoLoad: true,
       writeAllFields: true,
-      autoSync: true,
       validateResponse: false,
     },
 
@@ -122,6 +129,29 @@ function Calendar() {
           },
         },
       },
+
+      // onBeforeSave: async (data: any) => {
+      //   try {
+      //     // Make API call to save the event
+      //     const response = await api.post("/calendar/events", data.data);
+
+      //     if (response.status === 200) {
+      //       toast.success("Event saved successfully", { theme: "dark" });
+      //       return data;
+      //     }
+      //   } catch (error) {
+      //     toast.error("Failed to save event", { theme: "dark" });
+      //     return false; // Prevent the save operation
+      //   }
+      // },
+
+      // onBeforeDelete: (data: any) => {
+      //   console.log(data);
+      //   return data;
+      // },
+    },
+    onAfterEventSave: (data: any) => {
+      console.log(data);
     },
   });
 

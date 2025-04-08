@@ -11,7 +11,11 @@ exports.getAllStudents = async (req, res) => {
   try {
     const students = await User.findAll({
       where: { role_id: user_role.student },
-      include: { model: StudentInfo, attributes: ["note"] },
+      include: {
+        model: StudentInfo,
+        as: "student_infos", // Specify the alias
+        attributes: ["note"],
+      },
     });
 
     const transformedStudents = students.map((student) => ({

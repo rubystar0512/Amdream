@@ -30,7 +30,7 @@ const httpServer = http.createServer(app);
 const startServer = async () => {
   app.use(
     cors({
-      origin: "https://account.amdream.us", // Your frontend URL
+      origin: "http://localhost:3333", // Your frontend URL
       credentials: true, // Enable credentials (cookies, authorization headers)
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization"],

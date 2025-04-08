@@ -250,10 +250,10 @@ exports.getTeacherStudents = async (req, res) => {
       include: [
         {
           model: Calendar,
-          as: "StudentCalendars",
+          as: "studentCalendars",
           where: {
             teacher_id: teacherId,
-            class_date: { [Op.gte]: new Date() },
+            startDate: { [Op.gte]: new Date() },
             class_status: ["scheduled", "confirmed"],
           },
           required: true,

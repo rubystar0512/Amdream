@@ -12,7 +12,11 @@ const ClassInfo = require("./class_info");
 const Word = require("./words");
 const sequelize = require("./db");
 
-User.hasMany(StudentInfo, { foreignKey: "student_id", onDelete: "CASCADE" });
+User.hasMany(StudentInfo, {
+  foreignKey: "student_id",
+  as: "student_infos",
+  onDelete: "CASCADE",
+});
 User.hasMany(Lesson, { foreignKey: "student_id", onDelete: "CASCADE" });
 User.hasMany(Lesson, { foreignKey: "teacher_id", onDelete: "CASCADE" });
 User.hasMany(Payment, { foreignKey: "student_id", onDelete: "CASCADE" });

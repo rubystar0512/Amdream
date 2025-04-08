@@ -17,7 +17,7 @@ function Calendar() {
   const navigate = useNavigate();
   const auth = useAuth();
 
-  const { permissions, loading_1 } = usePermissions("/payments");
+  const { permissions, loading_1 } = usePermissions("/calendar");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [students, setStudents] = useState([]);

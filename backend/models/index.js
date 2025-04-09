@@ -10,11 +10,16 @@ const StudentInfo = require("./student_info");
 const Calendar = require("./calendar");
 const ClassInfo = require("./class_info");
 const Word = require("./words");
+const TimeAvailablity = require("./time_availablity");
 const sequelize = require("./db");
 
 User.hasMany(StudentInfo, {
   foreignKey: "student_id",
   as: "student_infos",
+  onDelete: "CASCADE",
+});
+User.hasMany(TimeAvailablity, {
+  foreignKey: "teacher_id",
   onDelete: "CASCADE",
 });
 User.hasMany(Lesson, { foreignKey: "student_id", onDelete: "CASCADE" });
@@ -24,6 +29,7 @@ Lesson.belongsTo(User, { as: "Student", foreignKey: "student_id" });
 Lesson.belongsTo(User, { as: "Teacher", foreignKey: "teacher_id" });
 Payment.belongsTo(User, { as: "Student", foreignKey: "student_id" });
 StudentInfo.belongsTo(User, { as: "Student", foreignKey: "student_id" });
+TimeAvailablity.belongsTo(User, { as: "Teacher", foreignKey: "teacher_id" });
 
 Calendar.belongsTo(User, {
   as: "student",
@@ -120,4 +126,5 @@ module.exports = {
   Calendar,
   ClassInfo,
   Word,
+  TimeAvailablity,
 };

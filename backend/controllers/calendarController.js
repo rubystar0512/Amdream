@@ -1,5 +1,21 @@
-const { User, Calendar } = require("../models");
+const { User, Calendar, TimeAvailablity } = require("../models");
 const key = require("../configs/key");
+
+const stringToColor = (str) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  // Convert to hex color
+  let color = "#";
+  for (let i = 0; i < 3; i++) {
+    const value = (hash >> (i * 8)) & 0xff;
+    color += ("00" + value.toString(16)).substr(-2);
+  }
+
+  return color;
+};
 
 exports.getAllEvents = async (req, res) => {
   try {
@@ -14,7 +30,7 @@ exports.getAllEvents = async (req, res) => {
     const resources = users.map((user) => ({
       id: user.id.toString(),
       name: `${user.first_name} ${user.last_name}`,
-      eventColor: "#" + Math.floor(Math.random() * 16777215).toString(16),
+      eventColor: stringToColor(`${user.first_name} ${user.last_name}`),
     }));
 
     const calendarEvents = await Calendar.findAll({
@@ -37,7 +53,9 @@ exports.getAllEvents = async (req, res) => {
       id: event.id,
       startDate: event.startDate.toISOString(),
       endDate: event.endDate.toISOString(),
-      name: `${event.student.first_name} ${event.student.last_name} / ${event.class_type} / ${event.payment_status}`,
+      name: `${event.student.first_name} ${event.student.last_name} / ${
+        event.class_type || "Not assigned"
+      } / ${event.payment_status || "Not assigned"}`,
       student_name: event.student_id.toString(),
       resourceId: event.teacher_id.toString(),
       allDay: false,
@@ -45,6 +63,27 @@ exports.getAllEvents = async (req, res) => {
       class_status: event.class_status,
       payment_status: event.payment_status,
       recurrenceRule: event.recurrenceRule,
+    }));
+
+    const timeRangesRawData = await TimeAvailablity.findAll({
+      include: [
+        {
+          model: User,
+          as: "Teacher",
+          attributes: ["first_name", "last_name"],
+        },
+      ],
+    });
+
+    const timeRanges = timeRangesRawData.map((timeRange) => ({
+      id: timeRange.id,
+      teacher_id: timeRange.teacher_id,
+      startDate: timeRange.startDate.toISOString(),
+      endDate: timeRange.endDate.toISOString(),
+      name: `${timeRange.Teacher.first_name} ${timeRange.Teacher.last_name} 's availability`,
+      color: stringToColor(
+        `${timeRange.Teacher.first_name} ${timeRange.Teacher.last_name}`
+      ),
     }));
 
     // Format the response according to the required structure
@@ -57,7 +96,7 @@ exports.getAllEvents = async (req, res) => {
         rows: events,
       },
       timeRanges: {
-        rows: [],
+        rows: timeRanges,
       },
     };
 
@@ -75,31 +114,61 @@ exports.saveEvents = async (req, res) => {
   try {
     if (req.body?.events) {
       const { added, updated, removed } = req.body?.events;
+      const responseData = { success: true };
+
       if (added?.length) {
+        // Track created events to map phantom IDs to real IDs
+        const createdEvents = [];
+        const createdAssignments = [];
+
         await Promise.all(
           added.map(async (event, key) => {
-            await Calendar.create({
+            // Store the phantom ID before creating
+            const phantomId = event.$PhantomId;
+            const assignmentPhantomId =
+              req.body?.assignments?.added?.[key]?.$PhantomId;
+
+            // Create the calendar event
+            const newEvent = await Calendar.create({
               class_type: event.class_type,
-
               student_id: parseInt(event.student_name),
-
               teacher_id: parseInt(
                 event.resourceId ||
                   req.body?.assignments?.added[key]?.resourceId
               ),
-
               class_status: event.class_status,
-
               payment_status: event.payment_status,
-
               startDate: event.startDate,
-
               endDate: event.endDate,
-
               recurrenceRule: event.recurrenceRule,
             });
+
+            // Map phantom ID to real ID for events
+            if (phantomId) {
+              createdEvents.push({
+                $PhantomId: phantomId,
+                id: newEvent.id.toString(),
+              });
+            }
+
+            // Map phantom ID to real ID for assignments if they exist
+            if (assignmentPhantomId) {
+              createdAssignments.push({
+                $PhantomId: assignmentPhantomId,
+                id: newEvent.id.toString(), // or another ID if assignments have their own IDs
+              });
+            }
           })
         );
+
+        // Add the ID mappings to the response
+        if (createdEvents.length > 0) {
+          responseData.events = { rows: createdEvents };
+        }
+
+        if (createdAssignments.length > 0) {
+          responseData.assignments = { rows: createdAssignments };
+        }
       }
 
       if (updated?.length) {
@@ -143,7 +212,7 @@ exports.saveEvents = async (req, res) => {
         });
       }
 
-      res.json({ success: true });
+      res.json(responseData);
     } else {
       res.json({ success: true });
     }
@@ -152,6 +221,68 @@ exports.saveEvents = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error saving calendar event",
+    });
+  }
+};
+
+exports.addTimerange = async (req, res) => {
+  try {
+    const { startDate, endDate, teacher_id } = req.body;
+    const timeRange = await TimeAvailablity.create({
+      startDate,
+      endDate,
+      teacher_id,
+    });
+    res.status(200).json({ success: true, timeRange });
+  } catch (error) {
+    console.error("Error adding timerange:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error adding timerange",
+    });
+  }
+};
+
+exports.getTimeranges = async (req, res) => {
+  const timeRangesRawData = await TimeAvailablity.findAll({
+    include: [
+      {
+        model: User,
+        as: "Teacher",
+        attributes: ["first_name", "last_name"],
+      },
+    ],
+  });
+
+  const timeRanges = timeRangesRawData.map((timeRange) => ({
+    id: timeRange.id,
+    teacher_id: timeRange.teacher_id,
+    startDate: timeRange.startDate.toISOString(),
+    endDate: timeRange.endDate.toISOString(),
+    name: `${timeRange.Teacher.first_name} ${timeRange.Teacher.last_name} 's availability`,
+    color: stringToColor(
+      `${timeRange.Teacher.first_name} ${timeRange.Teacher.last_name}`
+    ),
+  }));
+  res.status(200).json({ success: true, timeRanges });
+};
+
+exports.deleteTimerange = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await TimeAvailablity.destroy({
+      where: { id },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Timerange deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting timerange:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error deleting timerange",
     });
   }
 };

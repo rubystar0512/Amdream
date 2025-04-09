@@ -409,3 +409,27 @@ textarea::placeholder {
     }
   }
 }
+
+.time-range-modal {
+  .ant-modal-content {
+    background: #1a222d !important;
+  }
+
+  .ant-modal-header {
+    background: #1a222d !important;
+    .ant-modal-title {
+      color: white !important;
+    }
+  }
+  .ant-modal-close-icon {
+    svg {
+      color: white !important;
+    }
+  }
+}
+
+.ant-picker-ok {
+  button {
+    background-color: #1677ff !important;
+  }
+}

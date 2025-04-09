@@ -1,11 +1,12 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { BryntumCalendar, BryntumCalendarProps } from "@bryntum/calendar-react";
 import { useState } from "react";
-import { Modal, Card } from "antd";
+import { Modal, Card, DatePicker, Table } from "antd";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-
+import { FullscreenOutlined, ClockCircleTwoTone } from "@ant-design/icons";
+import { Dayjs } from "dayjs";
 import { usePermissions } from "../../hooks/usePermission";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { useAuth } from "../../hooks/useAuth";
@@ -13,19 +14,28 @@ import api from "../../config";
 
 import "../../App.scss";
 
+const { RangePicker } = DatePicker;
 function Calendar() {
   const navigate = useNavigate();
   const auth = useAuth();
-
+  const calendarRef = useRef<BryntumCalendar>(null);
   const { permissions, loading_1 } = usePermissions("/calendar");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [students, setStudents] = useState([]);
+  const [isTimerangeModalOpen, setIsTimerangeModalOpen] = useState(false);
+  const [startDate, setStartDate] = useState<Dayjs | null>(null);
+  const [endDate, setEndDate] = useState<Dayjs | null>(null);
+  const [timeRanges, setTimeRanges] = useState<any[]>([]);
+
   const isManager =
     auth.user?.role === "manager" || auth.user?.role === "admin";
+
   const [calendarProps, setCalendarProps] = useState<BryntumCalendarProps>({
     date: new Date(),
-
+    timeRangesFeature: {
+      headerWidth: 12,
+    },
     crudManager: {
       eventStore: {
         fields: [
@@ -52,9 +62,25 @@ function Calendar() {
                   parseInt(event.resourceId) === parseInt(auth.user?.id || "0"),
               );
             }
+
+            if (response?.timeRanges?.rows) {
+              response.timeRanges.rows = response.timeRanges.rows.filter(
+                (timeRange: any) =>
+                  parseInt(timeRange.teacher_id) ===
+                  parseInt(auth.user?.id || "0"),
+              );
+            }
           }
 
           return response;
+        },
+
+        sync: {
+          //@ts-ignore
+          fn() {
+            //@ts-ignore
+            calendarRef.current?.calendarInstance.crudManager.load();
+          },
         },
       },
 
@@ -63,8 +89,13 @@ function Calendar() {
           url: `${api.defaults.baseURL}/calendar/events`,
           method: "GET",
         },
+        sync: {
+          url: `${api.defaults.baseURL}/calendar/events`,
+          method: "POST",
+        },
       },
       autoLoad: true,
+      autoSync: true,
       writeAllFields: true,
       validateResponse: false,
     },
@@ -129,6 +160,7 @@ function Calendar() {
           },
         },
       },
+      listeners: {},
 
       // onBeforeSave: async (data: any) => {
       //   try {
@@ -149,9 +181,6 @@ function Calendar() {
       //   console.log(data);
       //   return data;
       // },
-    },
-    onAfterEventSave: (data: any) => {
-      console.log(data);
     },
   });
 
@@ -229,6 +258,89 @@ function Calendar() {
     }
   };
 
+  const addTimerange = async () => {
+    if (!startDate || !endDate) {
+      toast.error("Please select a date and time", { theme: "dark" });
+      return;
+    }
+
+    try {
+      const response = await api.post("/calendar/timerange", {
+        teacher_id: auth.user?.id,
+        startDate: startDate?.format("YYYY-MM-DD HH:mm"),
+        endDate: endDate?.format("YYYY-MM-DD HH:mm"),
+      });
+
+      if (response.status === 200) {
+        toast.success("Timerange added successfully", { theme: "dark" });
+        //@ts-ignore
+        calendarRef.current?.calendarInstance.crudManager.load();
+        setIsTimerangeModalOpen(false);
+        setStartDate(null);
+        setEndDate(null);
+      }
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
+
+  const columns = [
+    {
+      title: "Name",
+      dataIndex: "name",
+    },
+    {
+      title: "Start Date",
+      dataIndex: "startDate",
+    },
+    {
+      title: "End Date",
+      dataIndex: "endDate",
+    },
+    {
+      title: "Actions",
+      dataIndex: "actions",
+      render: (_: any, record: any) => (
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={() => timeRangeDelete(record)}
+            className="rounded-lg bg-gradient-to-r from-blue-900 to-indigo-600 px-4 py-2 text-sm font-medium text-white hover:from-blue-700 hover:to-indigo-700"
+          >
+            Delete
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  const timeRangeDelete = async (record: any) => {
+    try {
+      const response = await api.delete(`/calendar/timerange/${record.id}`);
+      if (response.status === 200) {
+        toast.success("Timerange deleted successfully", { theme: "dark" });
+        setTimeRanges([
+          ...timeRanges.filter((timeRange: any) => timeRange.id !== record.id),
+        ]);
+        //@ts-ignore
+        calendarRef.current?.calendarInstance.crudManager.load();
+      }
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchTimeRanges = async () => {
+      try {
+        const response = await api.get("/calendar/timerange");
+        setTimeRanges([...response.data?.timeRanges]);
+      } catch (error) {
+        handleApiError(error);
+      }
+    };
+    fetchTimeRanges();
+  }, [isTimerangeModalOpen]);
+
   if (loading_1) {
     return <LoadingSpinner />;
   }
@@ -278,24 +390,39 @@ function Calendar() {
           className="overflow-hidden rounded-xl border-0 shadow-lg transition-shadow hover:shadow-xl"
           headStyle={cardStyles.header}
           bodyStyle={cardStyles.body}
-          // extra={
-          //   <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row">
-          //     <div
-          //       className="flex flex-col gap-2 xs:flex-row"
-          //       onClick={() => setIsModalOpen(true)}
-          //     >
-          //       <motion.button
-          //         whileHover={{ scale: 1.02 }}
-          //         whileTap={{ scale: 0.98 }}
-          //         className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-900 to-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          //       >
-          //         <FullscreenOutlined className="mr-2" /> Zoom In
-          //       </motion.button>
-          //     </div>
-          //   </div>
-          // }
+          extra={
+            <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row">
+              {!isManager && (
+                <div
+                  className="flex flex-col gap-2 xs:flex-row"
+                  onClick={() => setIsTimerangeModalOpen(true)}
+                >
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-900 to-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  >
+                    <ClockCircleTwoTone className="mr-2" /> Add Timerange
+                  </motion.button>
+                </div>
+              )}
+
+              <div
+                className="flex flex-col gap-2 xs:flex-row"
+                onClick={() => setIsModalOpen(true)}
+              >
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-900 to-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  <FullscreenOutlined className="mr-2" /> Zoom In
+                </motion.button>
+              </div>
+            </div>
+          }
         >
-          <BryntumCalendar {...calendarProps} />
+          <BryntumCalendar ref={calendarRef} {...calendarProps} />
 
           <Modal
             title="Calendar"
@@ -308,7 +435,54 @@ function Calendar() {
             className="calendar-modal"
           >
             <div style={{ height: "100%" }}>
-              <BryntumCalendar {...calendarProps} />
+              <BryntumCalendar ref={calendarRef} {...calendarProps} />
+            </div>
+          </Modal>
+
+          <Modal
+            className="time-range-modal"
+            title="Add Availability Timerange"
+            open={isTimerangeModalOpen}
+            onCancel={() => setIsTimerangeModalOpen(false)}
+            footer={[
+              <div className="flex justify-end gap-2">
+                <button
+                  key="submit"
+                  className="rounded-lg bg-gradient-to-r from-blue-900 to-indigo-600 px-4 py-2 text-sm font-medium text-white hover:from-blue-700 hover:to-indigo-700"
+                  onClick={addTimerange}
+                >
+                  Add Timerange
+                </button>
+                <button
+                  key="cancel"
+                  onClick={() => setIsTimerangeModalOpen(false)}
+                  className="mr-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+              </div>,
+            ]}
+            width={"60vw"}
+          >
+            <div className="flex flex-col gap-4">
+              <RangePicker
+                value={[startDate, endDate]}
+                showTime={{ format: "HH:mm" }}
+                format="YYYY-MM-DD HH:mm"
+                onChange={(value) => {
+                  if (value) {
+                    setStartDate(value[0] || null);
+                    setEndDate(value[1] || null);
+                  }
+                }}
+              />
+
+              <Table
+                dataSource={timeRanges}
+                columns={columns}
+                pagination={false}
+                className="custom-table"
+              />
             </div>
           </Modal>
         </Card>

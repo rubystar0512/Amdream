@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { BryntumCalendar, BryntumCalendarProps } from "@bryntum/calendar-react";
 import { useState } from "react";
-import { Modal, Card, DatePicker, Table } from "antd";
+import { Modal, Card, DatePicker, Table, Checkbox } from "antd";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -13,6 +13,7 @@ import { useAuth } from "../../hooks/useAuth";
 import api from "../../config";
 
 import "../../App.scss";
+import { Label } from "flowbite-react";
 
 const { RangePicker } = DatePicker;
 function Calendar() {
@@ -27,6 +28,7 @@ function Calendar() {
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
   const [timeRanges, setTimeRanges] = useState<any[]>([]);
+  const [recurrenceRule, setRecurrenceRule] = useState(false);
 
   const isManager =
     auth.user?.role === "manager" || auth.user?.role === "admin";
@@ -269,6 +271,7 @@ function Calendar() {
         teacher_id: auth.user?.id,
         startDate: startDate?.format("YYYY-MM-DD HH:mm"),
         endDate: endDate?.format("YYYY-MM-DD HH:mm"),
+        recurrenceRule: recurrenceRule ? "FREQ=WEEKLY" : null,
       });
 
       if (response.status === 200) {
@@ -278,6 +281,7 @@ function Calendar() {
         setIsTimerangeModalOpen(false);
         setStartDate(null);
         setEndDate(null);
+        setRecurrenceRule(false);
       }
     } catch (error) {
       handleApiError(error);
@@ -364,7 +368,7 @@ function Calendar() {
       padding: "10px", // Reduced padding for mobile
       borderRadius: "0 0 12px 12px",
       backgroundColor: "rgba(255, 255, 255, 0.1)",
-      height: "100vh", // Changed from fixed height
+      height: "auto", // Changed from fixed height
       maxHeight: "100vh",
       "@media (min-width: 640px)": {
         padding: "20px",
@@ -378,7 +382,7 @@ function Calendar() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="flex h-[100vh] w-full flex-col gap-4 overflow-y-auto p-3 md:p-6"
+        className="flex h-auto w-full flex-col gap-4 overflow-y-auto p-3 md:p-6"
       >
         <Card
           title={
@@ -465,17 +469,30 @@ function Calendar() {
             width={"60vw"}
           >
             <div className="flex flex-col gap-4">
-              <RangePicker
-                value={[startDate, endDate]}
-                showTime={{ format: "HH:mm" }}
-                format="YYYY-MM-DD HH:mm"
-                onChange={(value) => {
-                  if (value) {
-                    setStartDate(value[0] || null);
-                    setEndDate(value[1] || null);
-                  }
-                }}
-              />
+              <div className="flex flex-col gap-4">
+                <br/>
+                <Label>Select Date and Time:</Label>
+                <RangePicker
+                  value={[startDate, endDate]}
+                  showTime={{ format: "HH:mm" }}
+                  format="YYYY-MM-DD HH:mm"
+                  onChange={(value) => {
+                    if (value) {
+                      setStartDate(value[0] || null);
+                      setEndDate(value[1] || null);
+                    }
+                  }}
+                  />
+                <div className="flex flex-col gap-2 text-white">
+                  
+                  <Checkbox
+                    checked={recurrenceRule}
+                    onChange={(e) => {
+                      setRecurrenceRule(e.target.checked);
+                    }}
+                  >Repeat</Checkbox>
+                </div>
+              </div>
 
               <Table
                 dataSource={timeRanges}

@@ -84,6 +84,7 @@ exports.getAllEvents = async (req, res) => {
       color: stringToColor(
         `${timeRange.Teacher.first_name} ${timeRange.Teacher.last_name}`
       ),
+      recurrenceRule: timeRange.recurrenceRule,
     }));
 
     // Format the response according to the required structure
@@ -121,45 +122,61 @@ exports.saveEvents = async (req, res) => {
         const createdEvents = [];
         const createdAssignments = [];
 
-        await Promise.all(
-          added.map(async (event, key) => {
-            // Store the phantom ID before creating
-            const phantomId = event.$PhantomId;
-            const assignmentPhantomId =
-              req.body?.assignments?.added?.[key]?.$PhantomId;
-
-            // Create the calendar event
-            const newEvent = await Calendar.create({
-              class_type: event.class_type,
-              student_id: parseInt(event.student_name),
-              teacher_id: parseInt(
-                event.resourceId ||
-                  req.body?.assignments?.added[key]?.resourceId
-              ),
-              class_status: event.class_status,
-              payment_status: event.payment_status,
-              startDate: event.startDate,
-              endDate: event.endDate,
-              recurrenceRule: event.recurrenceRule,
+        // Process each event to be added
+        for (const [key, event] of added.entries()) {
+          // Store the phantom ID before creating
+          const phantomId = event.$PhantomId;
+          const assignmentPhantomId =
+            req.body?.assignments?.added?.[key]?.$PhantomId;
+          
+          // Get teacher ID from the event or assignment
+          const teacherId = parseInt(
+            event.resourceId ||
+            req.body?.assignments?.added[key]?.resourceId
+          );
+          
+          // Check if the event falls within teacher's available timerange
+          const isWithinTimerange = await validateTeacherTimerange(
+            teacherId,
+            event.startDate,
+            event.endDate
+          );
+          
+          if (!isWithinTimerange) {
+            return res.status(400).json({
+              success: false,
+              message: "Event cannot be scheduled outside of teacher's available timerange"
             });
+          }
 
-            // Map phantom ID to real ID for events
-            if (phantomId) {
-              createdEvents.push({
-                $PhantomId: phantomId,
-                id: newEvent.id.toString(),
-              });
-            }
+          // Create the calendar event
+          const newEvent = await Calendar.create({
+            class_type: event.class_type,
+            student_id: parseInt(event.student_name),
+            teacher_id: teacherId,
+            class_status: event.class_status,
+            payment_status: event.payment_status,
+            startDate: event.startDate,
+            endDate: event.endDate,
+            recurrenceRule: event.recurrenceRule,
+          });
 
-            // Map phantom ID to real ID for assignments if they exist
-            if (assignmentPhantomId) {
-              createdAssignments.push({
-                $PhantomId: assignmentPhantomId,
-                id: newEvent.id.toString(), // or another ID if assignments have their own IDs
-              });
-            }
-          })
-        );
+          // Map phantom ID to real ID for events
+          if (phantomId) {
+            createdEvents.push({
+              $PhantomId: phantomId,
+              id: newEvent.id.toString(),
+            });
+          }
+
+          // Map phantom ID to real ID for assignments if they exist
+          if (assignmentPhantomId) {
+            createdAssignments.push({
+              $PhantomId: assignmentPhantomId,
+              id: newEvent.id.toString(),
+            });
+          }
+        }
 
         // Add the ID mappings to the response
         if (createdEvents.length > 0) {
@@ -172,36 +189,66 @@ exports.saveEvents = async (req, res) => {
       }
 
       if (updated?.length) {
-        await Promise.all(
-          updated.map(async (event) => {
-            // Create an update object with only the fields that exist in the event
-            const updateFields = {};
+        // Process each event to be updated
+        for (const event of updated) {
+          // Create an update object with only the fields that exist in the event
+          const updateFields = {};
 
-            if (event.class_type !== undefined)
-              updateFields.class_type = event.class_type;
-            if (event.student_name !== undefined)
-              updateFields.student_id = parseInt(event.student_name);
-            if (event.resourceId !== undefined)
-              updateFields.teacher_id = parseInt(event.resourceId);
-            if (event.class_status !== undefined)
-              updateFields.class_status = event.class_status;
-            if (event.payment_status !== undefined)
-              updateFields.payment_status = event.payment_status;
-            if (event.startDate !== undefined)
-              updateFields.startDate = event.startDate;
-            if (event.endDate !== undefined)
-              updateFields.endDate = event.endDate;
-            if (event.recurrenceRule !== undefined)
-              updateFields.recurrenceRule = event.recurrenceRule;
+          if (event.class_type !== undefined)
+            updateFields.class_type = event.class_type;
+          if (event.student_name !== undefined)
+            updateFields.student_id = parseInt(event.student_name);
+          if (event.resourceId !== undefined)
+            updateFields.teacher_id = parseInt(event.resourceId);
+          if (event.class_status !== undefined)
+            updateFields.class_status = event.class_status;
+          if (event.payment_status !== undefined)
+            updateFields.payment_status = event.payment_status;
+          if (event.startDate !== undefined)
+            updateFields.startDate = event.startDate;
+          if (event.endDate !== undefined)
+            updateFields.endDate = event.endDate;
+          if (event.recurrenceRule !== undefined)
+            updateFields.recurrenceRule = event.recurrenceRule;
 
-            // Only perform update if there are fields to update
-            if (Object.keys(updateFields).length > 0) {
-              await Calendar.update(updateFields, {
-                where: { id: event.id },
+          // Check if start/end dates are being updated
+          if (event.startDate !== undefined || event.endDate !== undefined) {
+            // Get current event details to find teacher ID if not in the update
+            const currentEvent = await Calendar.findByPk(event.id);
+            const teacherId = event.resourceId !== undefined 
+              ? parseInt(event.resourceId) 
+              : currentEvent.teacher_id;
+              
+            // Get the start and end dates (either from updates or current values)
+            const startDate = event.startDate !== undefined 
+              ? event.startDate 
+              : currentEvent.startDate;
+            const endDate = event.endDate !== undefined 
+              ? event.endDate 
+              : currentEvent.endDate;
+            
+            // Validate against teacher's timerange
+            const isWithinTimerange = await validateTeacherTimerange(
+              teacherId,
+              startDate,
+              endDate
+            );
+            
+            if (!isWithinTimerange) {
+              return res.status(400).json({
+                success: false,
+                message: "Please add a timerange for this teacher"
               });
             }
-          })
-        );
+          }
+
+          // Only perform update if there are fields to update
+          if (Object.keys(updateFields).length > 0) {
+            await Calendar.update(updateFields, {
+              where: { id: event.id },
+            });
+          }
+        }
       }
 
       if (removed?.length) {
@@ -225,13 +272,68 @@ exports.saveEvents = async (req, res) => {
   }
 };
 
+// Helper function to validate if an event falls within a teacher's available timeranges
+async function validateTeacherTimerange(teacherId, startDate, endDate) {
+  const { TimeAvailablity } = require('../models'); // Adjust according to your model structure
+  
+  // Find relevant timeranges for this teacher
+  const timeRanges = await TimeAvailablity.findAll({
+    where: {
+      teacher_id: teacherId
+    }
+  });
+  
+  // If no timeranges exist, allow the event (or you could restrict here)
+  if (timeRanges.length === 0) {
+    return false;
+  }
+  
+  // Convert event times to Date objects for comparison
+  const eventStart = new Date(startDate);
+  const eventEnd = new Date(endDate);
+  
+  // Check if the event falls within any of the teacher's timeranges
+  for (const range of timeRanges) {
+    const rangeStart = new Date(range.startDate);
+    const rangeEnd = new Date(range.endDate);
+    
+    // Handle recurring timeranges
+    if (range.recurrenceRule) {
+      // For simplicity, let's assume weekly recurrence
+      // This would need more complex logic for different recurrence patterns
+      if (range.recurrenceRule === 'FREQ=WEEKLY') {
+        // Check if days of week match
+        if (eventStart.getDay() === rangeStart.getDay()) {
+          // Check if time of day is within range (ignoring date)
+          const eventTimeStart = eventStart.getHours() * 60 + eventStart.getMinutes();
+          const eventTimeEnd = eventEnd.getHours() * 60 + eventEnd.getMinutes();
+          const rangeTimeStart = rangeStart.getHours() * 60 + rangeStart.getMinutes();
+          const rangeTimeEnd = rangeEnd.getHours() * 60 + rangeEnd.getMinutes();
+          
+          if (eventTimeStart >= rangeTimeStart && eventTimeEnd <= rangeTimeEnd) {
+            return true;
+          }
+        }
+      }
+    } 
+    // Non-recurring timerange - direct comparison
+    else if (eventStart >= rangeStart && eventEnd <= rangeEnd) {
+      return true;
+    }
+  }
+  
+  // If we get here, the event doesn't fall within any of the teacher's timeranges
+  return false;
+}
+
 exports.addTimerange = async (req, res) => {
   try {
-    const { startDate, endDate, teacher_id } = req.body;
+    const { startDate, endDate, teacher_id, recurrenceRule } = req.body;
     const timeRange = await TimeAvailablity.create({
       startDate,
       endDate,
       teacher_id,
+      recurrenceRule,
     });
     res.status(200).json({ success: true, timeRange });
   } catch (error) {
@@ -263,6 +365,7 @@ exports.getTimeranges = async (req, res) => {
     color: stringToColor(
       `${timeRange.Teacher.first_name} ${timeRange.Teacher.last_name}`
     ),
+    recurrenceRule: timeRange.recurrenceRule,
   }));
   res.status(200).json({ success: true, timeRanges });
 };

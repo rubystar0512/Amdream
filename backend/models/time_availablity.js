@@ -22,6 +22,10 @@ const TimeAvailablity = sequelize.define(
       type: DataTypes.DATE,
       allowNull: false,
     },
+    recurrenceRule: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     tableName: "time_availablity",

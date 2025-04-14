@@ -433,3 +433,7 @@ textarea::placeholder {
     background-color: #1677ff !important;
   }
 }
+
+.ant-checkbox-label {
+  color: white !important;
+}

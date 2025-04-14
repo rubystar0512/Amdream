@@ -186,39 +186,7 @@ exports.getTeacherStudents = async (req, res) => {
   try {
     const teacherId = req.params.teacherId;
 
-    // Get students who have lessons with multiple teachers
-    const studentsWithMultipleTeachers = await User.findAll({
-      where: { role_id: user_role.student },
-      include: [
-        {
-          model: Lesson,
-          as: "StudentLessons",
-          attributes: [],
-          required: true,
-        },
-      ],
-      attributes: [
-        "id",
-        "first_name",
-        "last_name",
-        [
-          Sequelize.fn(
-            "COUNT",
-            Sequelize.literal("DISTINCT StudentLessons.teacher_id")
-          ),
-          "teacher_count",
-        ],
-        [
-          Sequelize.fn("COUNT", Sequelize.col("StudentLessons.id")),
-          "class_count",
-        ],
-      ],
-      having: Sequelize.literal("teacher_count >= 2"),
-      group: ["user.id", "user.first_name", "user.last_name"],
-    });
-
     // Get students who have had lessons with this teacher
-    // Count the lessons and exclude those with only trial lessons
     const students = await User.findAll({
       where: { role_id: user_role.student },
       include: [
@@ -244,9 +212,43 @@ exports.getTeacherStudents = async (req, res) => {
       group: ["user.id", "user.first_name", "user.last_name"],
     });
 
-    // Get students with upcoming scheduled classes
+    // Get information about students with multiple teachers (but only if they've had lessons with this teacher)
+    const studentIds = students.map(student => student.id);
+    
+    // Get students with multiple teachers (only those who have had lessons with this teacher)
+    const studentsWithMultipleTeachers = await User.findAll({
+      where: { 
+        role_id: user_role.student,
+        id: { [Op.in]: studentIds }
+      },
+      include: [
+        {
+          model: Lesson,
+          as: "StudentLessons",
+          attributes: [],
+          required: true,
+        },
+      ],
+      attributes: [
+        "id",
+        [
+          Sequelize.fn(
+            "COUNT",
+            Sequelize.literal("DISTINCT StudentLessons.teacher_id")
+          ),
+          "teacher_count",
+        ],
+      ],
+      having: Sequelize.literal("teacher_count >= 2"),
+      group: ["user.id"],
+    });
+
+    // Get upcoming scheduled classes for these students
     const studentsWithSchedule = await User.findAll({
-      where: { role_id: user_role.student },
+      where: { 
+        role_id: user_role.student,
+        id: { [Op.in]: studentIds }
+      },
       include: [
         {
           model: Calendar,
@@ -260,42 +262,41 @@ exports.getTeacherStudents = async (req, res) => {
           attributes: [],
         },
       ],
-      attributes: [
-        "id",
-        "first_name",
-        "last_name",
-        [Sequelize.literal("0"), "class_count"], // Set 0 for scheduled classes
-      ],
-      group: ["user.id", "user.first_name", "user.last_name"],
+      attributes: ["id"],
+      group: ["user.id"],
     });
 
-    // Combine all students
+    // Combine all students - only those who have had lessons with this teacher
     const studentMap = new Map();
 
-    // Add students with multiple teachers first
-    studentsWithMultipleTeachers.forEach((student) => {
+    // Add all students who have had lessons with this teacher
+    students.forEach((student) => {
       studentMap.set(student.id, {
         ...student.toJSON(),
         class_count: parseInt(student.get("class_count")),
+        has_multiple_teachers: false,
+        has_upcoming_classes: false
       });
     });
 
-    // Add students with current teacher
-    students.forEach((student) => {
-      if (!studentMap.has(student.id)) {
+    // Mark students with multiple teachers
+    studentsWithMultipleTeachers.forEach((student) => {
+      if (studentMap.has(student.id)) {
+        const existingStudent = studentMap.get(student.id);
         studentMap.set(student.id, {
-          ...student.toJSON(),
-          class_count: parseInt(student.get("class_count")),
+          ...existingStudent,
+          has_multiple_teachers: true
         });
       }
     });
 
-    // Add students with scheduled classes
+    // Mark students with upcoming classes
     studentsWithSchedule.forEach((student) => {
-      if (!studentMap.has(student.id)) {
+      if (studentMap.has(student.id)) {
+        const existingStudent = studentMap.get(student.id);
         studentMap.set(student.id, {
-          ...student.toJSON(),
-          class_count: 0,
+          ...existingStudent,
+          has_upcoming_classes: true
         });
       }
     });

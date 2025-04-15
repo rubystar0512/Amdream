@@ -116,7 +116,16 @@ const PaymentComponent: React.FC = () => {
             );
 
             setPayments(paymentsRes.data.payments || []);
-            setStudents(studentsRes.data || []);
+            // Sort students alphabetically by first name and then last name
+            const sortedStudents = [...(studentsRes.data || [])].sort((a, b) => {
+              // First sort by first_name
+              const firstNameComparison = a.first_name.localeCompare(b.first_name);
+              // If first names are the same, sort by last_name
+              return firstNameComparison !== 0 
+                ? firstNameComparison 
+                : a.last_name.localeCompare(b.last_name);
+            });
+            setStudents([...sortedStudents]);
             setClassTypes(classTypesRes.data || []);
             setLoading(false);
           } catch (error: any) {

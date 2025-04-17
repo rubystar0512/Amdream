@@ -49,21 +49,30 @@ exports.getAllEvents = async (req, res) => {
     });
 
     // Format events
-    const events = calendarEvents.map((event) => ({
-      id: event.id,
-      startDate: event.startDate.toISOString(),
-      endDate: event.endDate.toISOString(),
-      name: `${event.student.first_name} ${event.student.last_name} / ${
-        event.class_type || "Not assigned"
-      } / ${event.payment_status || "Not assigned"}`,
-      student_name: event.student_id.toString(),
-      resourceId: event.teacher_id.toString(),
-      allDay: false,
-      class_type: event.class_type,
-      class_status: event.class_status,
-      payment_status: event.payment_status,
-      recurrenceRule: event.recurrenceRule,
-    }));
+    const events = calendarEvents.map((event) => {
+      const studentName = `${event.student.first_name} ${event.student.last_name}`;
+      const classType = event.class_type || "Not assigned";
+      const paymentStatus = event.payment_status || "Not assigned";
+
+      const name =
+        paymentStatus === "unpaid"
+          ? `unpaid / ${studentName} / ${classType}`
+          : `${studentName} / ${classType} / ${paymentStatus}`;
+
+      return {
+        id: event.id,
+        startDate: event.startDate.toISOString(),
+        endDate: event.endDate.toISOString(),
+        name,
+        student_name: event.student_id.toString(),
+        resourceId: event.teacher_id.toString(),
+        allDay: false,
+        class_type: event.class_type,
+        class_status: event.class_status,
+        payment_status: event.payment_status,
+        recurrenceRule: event.recurrenceRule,
+      };
+    });
 
     const timeRangesRawData = await TimeAvailablity.findAll({
       include: [

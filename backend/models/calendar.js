@@ -23,7 +23,7 @@ const Calendar = sequelize.define(
     },
     class_status: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     payment_status: {
       type: DataTypes.STRING,

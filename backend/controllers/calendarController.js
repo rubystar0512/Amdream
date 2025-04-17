@@ -230,18 +230,18 @@ exports.saveEvents = async (req, res) => {
                 : currentEvent.endDate;
 
             // Validate against teacher's timerange
-            const isWithinTimerange = await validateTeacherTimerange(
-              teacherId,
-              startDate,
-              endDate
-            );
+            // const isWithinTimerange = await validateTeacherTimerange(
+            //   teacherId,
+            //   startDate,
+            //   endDate
+            // );
 
-            if (!isWithinTimerange) {
-              return res.status(400).json({
-                success: false,
-                message: "Please add a timerange for this teacher",
-              });
-            }
+            // if (!isWithinTimerange) {
+            //   return res.status(400).json({
+            //     success: false,
+            //     message: "Please add a timerange for this teacher",
+            //   });
+            // }
           }
 
           // Only perform update if there are fields to update

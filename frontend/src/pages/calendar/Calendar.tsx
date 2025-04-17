@@ -242,6 +242,7 @@ function Calendar() {
         const fetchData = async () => {
           setLoading(true);
           try {
+            console.log("dddd");
             const response = await api.get("/students");
             const studentsList = response?.data
               ?.filter(
@@ -261,11 +262,13 @@ function Calendar() {
                   const isManager =
                     auth.user?.role === "manager" ||
                     auth.user?.role === "admin";
+
                   const isValid = isWithinAvailableTime(
                     eventRecord?.startDate,
                     eventRecord?.endDate,
                     timeRanges,
                   );
+
                   if (isManager && !isValid) {
                     toast.info(
                       "Managers cannot edit unavailable time ranges.",
@@ -273,6 +276,18 @@ function Calendar() {
                         theme: "dark",
                       },
                     );
+
+                    // 🔥 Destroy lingering editor instance
+                    const editor =
+                      calendarRef.current?.calendarInstance?.features?.eventEdit
+                        ?.editor;
+
+                    if (editor) {
+                      editor.cancelEditing?.(); // Safely cancel
+                      editor.hide?.(); // Hide forcibly
+                      editor.record = null; // Clear record reference
+                    }
+
                     return false;
                   }
 

@@ -279,6 +279,7 @@ function Calendar() {
 
                     // 🔥 Destroy lingering editor instance
                     const editor =
+                      //@ts-ignore
                       calendarRef.current?.calendarInstance?.features?.eventEdit
                         ?.editor;
 

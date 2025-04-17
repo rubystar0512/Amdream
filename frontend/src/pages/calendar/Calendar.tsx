@@ -41,7 +41,8 @@ function Calendar() {
     sidebar: {
       items: {
         resourceFilter: {
-          selectAllItem: true,
+          selectAllItem:
+            auth.user?.role === "manager" || auth.user?.role === "admin",
         },
       },
     },
@@ -112,9 +113,6 @@ function Calendar() {
     eventEditFeature: {
       editorConfig: {
         items: {
-          nameField: {
-            disabled: true,
-          },
           classTypeField: {
             type: "combo",
             name: "class_type",
@@ -127,6 +125,31 @@ function Calendar() {
               { value: "regular", text: "Regular (60 min)" },
             ],
             required: true,
+            listeners: {
+              change: (event: { source: any }) => {
+                const combo = event.source;
+                const editor = combo?.owner;
+
+                if (!editor || !editor.record) {
+                  console.warn("Editor or event record not found");
+                  return;
+                }
+                const classType = combo.value;
+                const increment = classType === "trial" ? 30 : 60;
+
+                const eventRecord = editor.record;
+                const startDate = eventRecord.startDate;
+
+                if (!startDate) return;
+                const newEnd = new Date(
+                  startDate.getTime() + increment * 60000,
+                );
+                const endTimeField = editor.widgetMap?.endTimeField;
+                if (endTimeField) {
+                  endTimeField.value = newEnd;
+                }
+              },
+            },
           },
 
           studentNameField: {
@@ -163,26 +186,18 @@ function Calendar() {
                     { value: "given", text: "Given" },
                     { value: "noShowStudent", text: "No Show Student" },
                     { value: "noShowTeacher", text: "No Show Teacher" },
+                    { value: "scheduled", text: "Scheduled" },
                   ]
                 : [
                     { value: "given", text: "Given" },
                     { value: "noShowStudent", text: "No Show Student" },
+                    { value: "scheduled", text: "Scheduled" },
                   ],
             required: true,
           },
         },
       },
-      llisteners: {
-        //@ts-ignore
-        show: ({ editor }) => {
-          // Find the element by ID and disable it
-          const nameField = editor.widgetMap["textfield-3-input"];
-          if (nameField) {
-            nameField.disabled = true;
-          }
-        },
-      },
-
+      listeners: {},
       // onBeforeSave: async (data: any) => {
       //   try {
       //     // Make API call to save the event
@@ -204,7 +219,6 @@ function Calendar() {
       // },
     },
   });
-
   useEffect(() => {
     if (!loading_1) {
       if (!permissions.read) {
@@ -217,18 +231,44 @@ function Calendar() {
           setLoading(true);
           try {
             const response = await api.get("/students");
-            const studentsList = response?.data?.map((student: any) => ({
-              value: student?.id,
-              text: student?.first_name + " " + student?.last_name,
-            }));
+            const studentsList = response?.data
+              ?.filter(
+                (student: any) => student?.first_name && student?.last_name,
+              )
+              .map((student: any) => ({
+                value: student.id,
+                text: `${student.first_name} ${student.last_name}`.trim(),
+              }))
+              .sort((a: any, b: any) => a.text.localeCompare(b.text));
             setStudents(studentsList);
             setCalendarProps((prev: any) => ({
               ...prev,
+              listeners: {
+                // beforeEventEdit: (context: any) => {
+                //   const isManager =
+                //     auth.user?.role === "manager" ||
+                //     auth.user?.role === "admin";
+                //   if (isManager) {
+                //     console.log(
+                //       "❌ Blocked opening for manager on unavailable time",
+                //     );
+                //     toast.info(
+                //       "Managers cannot edit unavailable time ranges.",
+                //       {
+                //         theme: "dark",
+                //       },
+                //     );
+                //     return false;
+                //   }
+                //   return true;
+                // },
+              },
               eventEditFeature: {
                 ...prev.eventEditFeature,
                 editorConfig: {
                   ...prev.eventEditFeature?.editorConfig,
                   items: {
+                    nameField: false,
                     classTypeField:
                       prev.eventEditFeature?.editorConfig?.items
                         ?.classTypeField,
@@ -247,6 +287,7 @@ function Calendar() {
                         ?.classStatusField,
                   },
                 },
+                listeners: {},
               },
             }));
             setLoading(false);

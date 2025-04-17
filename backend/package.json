@@ -16,6 +16,7 @@
   "license": "MIT",
   "dependencies": {
     "@sendgrid/mail": "^8.1.4",
+    "amdream-backend": "file:",
     "bcryptjs": "^3.0.2",
     "body-parser": "^1.20.3",
     "colors": "^1.4.0",

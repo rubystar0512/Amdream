@@ -7,7 +7,6 @@ import routes from "./route";
 function App() {
   return (
     <AuthProvider>
-      
       <main className="flex min-h-screen items-center justify-center gap-2 dark:bg-gray-800">
         <RouterProvider router={routes} />
         <ToastContainer />

@@ -213,13 +213,13 @@ exports.getTeacherStudents = async (req, res) => {
     });
 
     // Get information about students with multiple teachers (but only if they've had lessons with this teacher)
-    const studentIds = students.map(student => student.id);
-    
+    const studentIds = students.map((student) => student.id);
+
     // Get students with multiple teachers (only those who have had lessons with this teacher)
     const studentsWithMultipleTeachers = await User.findAll({
-      where: { 
+      where: {
         role_id: user_role.student,
-        id: { [Op.in]: studentIds }
+        id: { [Op.in]: studentIds },
       },
       include: [
         {
@@ -245,9 +245,9 @@ exports.getTeacherStudents = async (req, res) => {
 
     // Get upcoming scheduled classes for these students
     const studentsWithSchedule = await User.findAll({
-      where: { 
+      where: {
         role_id: user_role.student,
-        id: { [Op.in]: studentIds }
+        id: { [Op.in]: studentIds },
       },
       include: [
         {
@@ -275,7 +275,7 @@ exports.getTeacherStudents = async (req, res) => {
         ...student.toJSON(),
         class_count: parseInt(student.get("class_count")),
         has_multiple_teachers: false,
-        has_upcoming_classes: false
+        has_upcoming_classes: false,
       });
     });
 
@@ -285,7 +285,7 @@ exports.getTeacherStudents = async (req, res) => {
         const existingStudent = studentMap.get(student.id);
         studentMap.set(student.id, {
           ...existingStudent,
-          has_multiple_teachers: true
+          has_multiple_teachers: true,
         });
       }
     });
@@ -296,7 +296,7 @@ exports.getTeacherStudents = async (req, res) => {
         const existingStudent = studentMap.get(student.id);
         studentMap.set(student.id, {
           ...existingStudent,
-          has_upcoming_classes: true
+          has_upcoming_classes: true,
         });
       }
     });

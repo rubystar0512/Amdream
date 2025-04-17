@@ -227,9 +227,22 @@ function Calendar() {
           theme: "dark",
         });
       } else {
+        const isWithinAvailableTime = (
+          startDate: Date,
+          endDate: Date,
+          ranges: { startDate: string; endDate: string }[],
+        ): boolean => {
+          return ranges.some((range) => {
+            const rangeStart = new Date(range.startDate);
+            const rangeEnd = new Date(range.endDate);
+            return startDate >= rangeStart && endDate <= rangeEnd;
+          });
+        };
+
         const fetchData = async () => {
           setLoading(true);
           try {
+            console.log("dddd");
             const response = await api.get("/students");
             const studentsList = response?.data
               ?.filter(
@@ -244,24 +257,43 @@ function Calendar() {
             setCalendarProps((prev: any) => ({
               ...prev,
               listeners: {
-                // beforeEventEdit: (context: any) => {
-                //   const isManager =
-                //     auth.user?.role === "manager" ||
-                //     auth.user?.role === "admin";
-                //   if (isManager) {
-                //     console.log(
-                //       "❌ Blocked opening for manager on unavailable time",
-                //     );
-                //     toast.info(
-                //       "Managers cannot edit unavailable time ranges.",
-                //       {
-                //         theme: "dark",
-                //       },
-                //     );
-                //     return false;
-                //   }
-                //   return true;
-                // },
+                beforeEventEdit: (context: any) => {
+                  const eventRecord = context?.eventRecord;
+                  const isManager =
+                    auth.user?.role === "manager" ||
+                    auth.user?.role === "admin";
+
+                  const isValid = isWithinAvailableTime(
+                    eventRecord?.startDate,
+                    eventRecord?.endDate,
+                    timeRanges,
+                  );
+
+                  if (isManager && !isValid) {
+                    toast.info(
+                      "Managers cannot edit unavailable time ranges.",
+                      {
+                        theme: "dark",
+                      },
+                    );
+
+                    // 🔥 Destroy lingering editor instance
+                    const editor =
+                      //@ts-ignore
+                      calendarRef.current?.calendarInstance?.features?.eventEdit
+                        ?.editor;
+
+                    if (editor) {
+                      editor.cancelEditing?.(); // Safely cancel
+                      editor.hide?.(); // Hide forcibly
+                      editor.record = null; // Clear record reference
+                    }
+
+                    return false;
+                  }
+
+                  return true;
+                },
               },
               eventEditFeature: {
                 ...prev.eventEditFeature,

@@ -38,6 +38,13 @@ function Calendar() {
     timeRangesFeature: {
       headerWidth: 12,
     },
+    sidebar: {
+      items: {
+        resourceFilter: {
+          selectAllItem: true,
+        },
+      },
+    },
     crudManager: {
       eventStore: {
         fields: [
@@ -105,6 +112,9 @@ function Calendar() {
     eventEditFeature: {
       editorConfig: {
         items: {
+          nameField: {
+            disabled: true,
+          },
           classTypeField: {
             type: "combo",
             name: "class_type",
@@ -162,7 +172,16 @@ function Calendar() {
           },
         },
       },
-      listeners: {},
+      llisteners: {
+        //@ts-ignore
+        show: ({ editor }) => {
+          // Find the element by ID and disable it
+          const nameField = editor.widgetMap["textfield-3-input"];
+          if (nameField) {
+            nameField.disabled = true;
+          }
+        },
+      },
 
       // onBeforeSave: async (data: any) => {
       //   try {
@@ -470,7 +489,7 @@ function Calendar() {
           >
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-4">
-                <br/>
+                <br />
                 <Label>Select Date and Time:</Label>
                 <RangePicker
                   value={[startDate, endDate]}
@@ -482,15 +501,16 @@ function Calendar() {
                       setEndDate(value[1] || null);
                     }
                   }}
-                  />
+                />
                 <div className="flex flex-col gap-2 text-white">
-                  
                   <Checkbox
                     checked={recurrenceRule}
                     onChange={(e) => {
                       setRecurrenceRule(e.target.checked);
                     }}
-                  >Repeat</Checkbox>
+                  >
+                    Repeat
+                  </Checkbox>
                 </div>
               </div>
 

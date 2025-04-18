@@ -8,7 +8,7 @@ const fs = require("fs");
 const compression = require("compression");
 const color = require("colors");
 
-const { sequelize } = require("./models");
+const models = require("./models");
 const { port } = require("./configs/key");
 const apiRouter = require("./routes");
 
@@ -64,10 +64,12 @@ const startServer = async () => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
   });
 
-  sequelize
-    .sync({ force: false })
-    .then(() => console.log("Database & tables synced"))
-    .catch((err) => console.log("Error syncing database: ", err));
+  // sequelize
+  //   .sync({ force: false })
+  //   .then(() => console.log("Database & tables synced"))
+  //   .catch((err) => console.log("Error syncing database: ", err));
+
+  await models.sync();
 
   if (httpsServer) {
     httpsServer.listen(port, () => {

@@ -76,22 +76,6 @@ User.hasMany(Word, {
   onDelete: "CASCADE",
 });
 
-User.hasMany(TeacherRate, {
-  foreignKey: "teacher_id",
-  onDelete: "CASCADE",
-});
-
-TeacherRate.belongsTo(User, {
-  foreignKey: "teacher_id",
-  onDelete: "CASCADE",
-});
-TeacherRate.belongsTo(ClassType, { foreignKey: "class_type_id" });
-
-ClassType.hasMany(TeacherRate, {
-  foreignKey: "class_type_id",
-  onDelete: "CASCADE",
-});
-
 Lesson.belongsTo(ClassType, { foreignKey: "class_type_id" });
 ClassType.hasMany(Lesson, { foreignKey: "class_type_id", onDelete: "CASCADE" });
 
@@ -112,6 +96,25 @@ User.hasMany(Lesson, {
   foreignKey: "student_id",
 });
 User.hasMany(Lesson, { foreignKey: "teacher_id", onDelete: "CASCADE" });
+
+TeacherRate.belongsTo(User, {
+  foreignKey: "teacher_id",
+  onDelete: "CASCADE",
+});
+User.hasMany(TeacherRate, {
+  foreignKey: "teacher_id",
+  onDelete: "CASCADE",
+});
+
+TeacherRate.belongsTo(ClassType, { 
+  foreignKey: "class_type_id",
+  onDelete: "CASCADE"
+});
+ClassType.hasMany(TeacherRate, {
+  foreignKey: "class_type_id",
+  onDelete: "CASCADE"
+});
+
 module.exports = {
   sequelize,
   ClassType,
@@ -127,4 +130,23 @@ module.exports = {
   ClassInfo,
   Word,
   TimeAvailablity,
+  
+  sync: async function(options = {}) {
+    await Role.sync(options);
+    await Menu.sync(options);
+    await ClassType.sync(options);
+    await User.sync(options);
+    
+    await TeacherRate.sync(options);
+    await StudentInfo.sync(options);
+    await TimeAvailablity.sync(options);
+    await Lesson.sync(options);
+    await Payment.sync(options);
+    await Calendar.sync(options);
+    await ClassInfo.sync(options);
+    await Word.sync(options);
+    await Permission.sync(options);
+    
+    console.log("All tables synchronized successfully");
+  }
 };

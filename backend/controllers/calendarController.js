@@ -128,26 +128,26 @@ exports.saveEvents = async (req, res) => {
           const phantomId = event.$PhantomId;
           const assignmentPhantomId =
             req.body?.assignments?.added?.[key]?.$PhantomId;
-          
+
           // Get teacher ID from the event or assignment
           const teacherId = parseInt(
-            event.resourceId ||
-            req.body?.assignments?.added[key]?.resourceId
+            event.resourceId || req.body?.assignments?.added[key]?.resourceId
           );
-          
+
           // Check if the event falls within teacher's available timerange
-          const isWithinTimerange = await validateTeacherTimerange(
-            teacherId,
-            event.startDate,
-            event.endDate
-          );
-          
-          if (!isWithinTimerange) {
-            return res.status(400).json({
-              success: false,
-              message: "Event cannot be scheduled outside of teacher's available timerange"
-            });
-          }
+          // const isWithinTimerange = await validateTeacherTimerange(
+          //   teacherId,
+          //   event.startDate,
+          //   event.endDate
+          // );
+
+          // if (!isWithinTimerange) {
+          //   return res.status(400).json({
+          //     success: false,
+          //     message:
+          //       "Event cannot be scheduled outside of teacher's available timerange",
+          //   });
+          // }
 
           // Create the calendar event
           const newEvent = await Calendar.create({
@@ -206,8 +206,7 @@ exports.saveEvents = async (req, res) => {
             updateFields.payment_status = event.payment_status;
           if (event.startDate !== undefined)
             updateFields.startDate = event.startDate;
-          if (event.endDate !== undefined)
-            updateFields.endDate = event.endDate;
+          if (event.endDate !== undefined) updateFields.endDate = event.endDate;
           if (event.recurrenceRule !== undefined)
             updateFields.recurrenceRule = event.recurrenceRule;
 
@@ -215,29 +214,32 @@ exports.saveEvents = async (req, res) => {
           if (event.startDate !== undefined || event.endDate !== undefined) {
             // Get current event details to find teacher ID if not in the update
             const currentEvent = await Calendar.findByPk(event.id);
-            const teacherId = event.resourceId !== undefined 
-              ? parseInt(event.resourceId) 
-              : currentEvent.teacher_id;
-              
+            const teacherId =
+              event.resourceId !== undefined
+                ? parseInt(event.resourceId)
+                : currentEvent.teacher_id;
+
             // Get the start and end dates (either from updates or current values)
-            const startDate = event.startDate !== undefined 
-              ? event.startDate 
-              : currentEvent.startDate;
-            const endDate = event.endDate !== undefined 
-              ? event.endDate 
-              : currentEvent.endDate;
-            
+            const startDate =
+              event.startDate !== undefined
+                ? event.startDate
+                : currentEvent.startDate;
+            const endDate =
+              event.endDate !== undefined
+                ? event.endDate
+                : currentEvent.endDate;
+
             // Validate against teacher's timerange
             const isWithinTimerange = await validateTeacherTimerange(
               teacherId,
               startDate,
               endDate
             );
-            
+
             if (!isWithinTimerange) {
               return res.status(400).json({
                 success: false,
-                message: "Please add a timerange for this teacher"
+                message: "Please add a timerange for this teacher",
               });
             }
           }
@@ -264,64 +266,68 @@ exports.saveEvents = async (req, res) => {
       res.json({ success: true });
     }
   } catch (error) {
-    console.error("Error saving event:", error);
     res.status(500).json({
       success: false,
-      message: "Error saving calendar event",
+      message: `Error saving calendar event ${error}`,
     });
   }
 };
 
 // Helper function to validate if an event falls within a teacher's available timeranges
 async function validateTeacherTimerange(teacherId, startDate, endDate) {
-  const { TimeAvailablity } = require('../models'); // Adjust according to your model structure
-  
+  const { TimeAvailablity } = require("../models"); // Adjust according to your model structure
+
   // Find relevant timeranges for this teacher
   const timeRanges = await TimeAvailablity.findAll({
     where: {
-      teacher_id: teacherId
-    }
+      teacher_id: teacherId,
+    },
   });
-  
+
   // If no timeranges exist, allow the event (or you could restrict here)
   if (timeRanges.length === 0) {
     return false;
   }
-  
+
   // Convert event times to Date objects for comparison
   const eventStart = new Date(startDate);
   const eventEnd = new Date(endDate);
-  
+
   // Check if the event falls within any of the teacher's timeranges
   for (const range of timeRanges) {
     const rangeStart = new Date(range.startDate);
     const rangeEnd = new Date(range.endDate);
-    
+
     // Handle recurring timeranges
     if (range.recurrenceRule) {
       // For simplicity, let's assume weekly recurrence
       // This would need more complex logic for different recurrence patterns
-      if (range.recurrenceRule === 'FREQ=WEEKLY') {
+      if (range.recurrenceRule === "FREQ=WEEKLY") {
         // Check if days of week match
         if (eventStart.getDay() === rangeStart.getDay()) {
           // Check if time of day is within range (ignoring date)
-          const eventTimeStart = eventStart.getHours() * 60 + eventStart.getMinutes();
+          const eventTimeStart =
+            eventStart.getHours() * 60 + eventStart.getMinutes();
           const eventTimeEnd = eventEnd.getHours() * 60 + eventEnd.getMinutes();
-          const rangeTimeStart = rangeStart.getHours() * 60 + rangeStart.getMinutes();
+          const rangeTimeStart =
+            rangeStart.getHours() * 60 + rangeStart.getMinutes();
           const rangeTimeEnd = rangeEnd.getHours() * 60 + rangeEnd.getMinutes();
-          
-          if (eventTimeStart >= rangeTimeStart && eventTimeEnd <= rangeTimeEnd) {
+
+          if (
+            eventTimeStart >= rangeTimeStart &&
+            eventTimeEnd <= rangeTimeEnd
+          ) {
             return true;
           }
         }
       }
-    } 
+    }
     // Non-recurring timerange - direct comparison
     else if (eventStart >= rangeStart && eventEnd <= rangeEnd) {
       return true;
     }
   }
-  
+
   // If we get here, the event doesn't fall within any of the teacher's timeranges
   return false;
 }

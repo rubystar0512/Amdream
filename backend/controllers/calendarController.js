@@ -143,21 +143,6 @@ exports.saveEvents = async (req, res) => {
             event.resourceId || req.body?.assignments?.added[key]?.resourceId
           );
 
-          // Check if the event falls within teacher's available timerange
-          // const isWithinTimerange = await validateTeacherTimerange(
-          //   teacherId,
-          //   event.startDate,
-          //   event.endDate
-          // );
-
-          // if (!isWithinTimerange) {
-          //   return res.status(400).json({
-          //     success: false,
-          //     message:
-          //       "Event cannot be scheduled outside of teacher's available timerange",
-          //   });
-          // }
-
           // Create the calendar event
           const newEvent = await Calendar.create({
             class_type: event.class_type,
@@ -239,18 +224,18 @@ exports.saveEvents = async (req, res) => {
                 : currentEvent.endDate;
 
             // Validate against teacher's timerange
-            const isWithinTimerange = await validateTeacherTimerange(
-              teacherId,
-              startDate,
-              endDate
-            );
+            // const isWithinTimerange = await validateTeacherTimerange(
+            //   teacherId,
+            //   startDate,
+            //   endDate
+            // );
 
-            if (!isWithinTimerange) {
-              return res.status(400).json({
-                success: false,
-                message: "Please add a timerange for this teacher",
-              });
-            }
+            // if (!isWithinTimerange) {
+            //   return res.status(400).json({
+            //     success: false,
+            //     message: "Please add a timerange for this teacher",
+            //   });
+            // }
           }
 
           // Only perform update if there are fields to update

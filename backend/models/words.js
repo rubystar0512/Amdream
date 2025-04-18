@@ -2,7 +2,7 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("./db");
 
 const Word = sequelize.define(
-  "user",
+  "word",
   {
     id: {
       type: DataTypes.INTEGER,

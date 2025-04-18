@@ -1,4 +1,4 @@
-const { User, Calendar, TimeAvailablity } = require("../models");
+const { User, Calendar, TimeAvailablity, Lesson } = require("../models");
 const key = require("../configs/key");
 
 const stringToColor = (str) => {
@@ -154,7 +154,21 @@ exports.saveEvents = async (req, res) => {
             endDate: event.endDate,
             recurrenceRule: event.recurrenceRule,
           });
-
+          if (event.class_status != "scheduled") {
+            let classTypeId = 0;
+            if (event.class_type === "trial") {
+              classTypeId = 1;
+            } else {
+              classTypeId = 2;
+            }
+            await Lesson.create({
+              calendar_id: newEvent.id,
+              lesson_date: "0000-00-00",
+              student_id: parseInt(event.student_name),
+              teacher_id: teacherId,
+              class_type_id: classTypeId,
+            });
+          }
           // Map phantom ID to real ID for events
           if (phantomId) {
             createdEvents.push({
@@ -187,13 +201,24 @@ exports.saveEvents = async (req, res) => {
         for (const event of updated) {
           // Create an update object with only the fields that exist in the event
           const updateFields = {};
+          const updateCalendar = {};
 
-          if (event.class_type !== undefined)
+          if (event.class_type !== undefined) {
             updateFields.class_type = event.class_type;
-          if (event.student_name !== undefined)
+            if (event.class_type === "trial") {
+              updateCalendar.class_type_id = 1;
+            } else {
+              updateCalendar.class_type_id = 2;
+            }
+          }
+          if (event.student_name !== undefined) {
             updateFields.student_id = parseInt(event.student_name);
-          if (event.resourceId !== undefined)
+            updateCalendar.student_id = parseInt(event.student_name);
+          }
+          if (event.resourceId !== undefined) {
             updateFields.teacher_id = parseInt(event.resourceId);
+            updateCalendar.teacher_id = parseInt(event.resourceId);
+          }
           if (event.class_status !== undefined)
             updateFields.class_status = event.class_status;
           if (event.payment_status !== undefined)
@@ -203,7 +228,6 @@ exports.saveEvents = async (req, res) => {
           if (event.endDate !== undefined) updateFields.endDate = event.endDate;
           if (event.recurrenceRule !== undefined)
             updateFields.recurrenceRule = event.recurrenceRule;
-
           // Check if start/end dates are being updated
           if (event.startDate !== undefined || event.endDate !== undefined) {
             // Get current event details to find teacher ID if not in the update
@@ -222,7 +246,7 @@ exports.saveEvents = async (req, res) => {
               event.endDate !== undefined
                 ? event.endDate
                 : currentEvent.endDate;
-
+            updateCalendar.calendar_id = event.id;
             // Validate against teacher's timerange
             // const isWithinTimerange = await validateTeacherTimerange(
             //   teacherId,
@@ -240,8 +264,11 @@ exports.saveEvents = async (req, res) => {
 
           // Only perform update if there are fields to update
           if (Object.keys(updateFields).length > 0) {
-            await Calendar.update(updateFields, {
+            const newEvent = await Calendar.update(updateFields, {
               where: { id: event.id },
+            });
+            await Lesson.update(updateCalendar, {
+              where: { calendar_id: event.id },
             });
           }
         }
@@ -251,6 +278,11 @@ exports.saveEvents = async (req, res) => {
         await Calendar.destroy({
           where: {
             id: removed.map((event) => event.id),
+          },
+        });
+        await Lesson.destroy({
+          where: {
+            calendar_id: removed.map((event) => event.id),
           },
         });
       }

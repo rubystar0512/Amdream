@@ -106,15 +106,19 @@ User.hasMany(TeacherRate, {
   onDelete: "CASCADE",
 });
 
-TeacherRate.belongsTo(ClassType, { 
+TeacherRate.belongsTo(ClassType, {
   foreignKey: "class_type_id",
-  onDelete: "CASCADE"
+  onDelete: "CASCADE",
 });
 ClassType.hasMany(TeacherRate, {
   foreignKey: "class_type_id",
-  onDelete: "CASCADE"
+  onDelete: "CASCADE",
 });
-
+Lesson.hasOne(Calendar, {
+  sourceKey: "calendar_id",
+  foreignKey: "id",
+  as: "CalendarLink",
+});
 module.exports = {
   sequelize,
   ClassType,
@@ -130,13 +134,13 @@ module.exports = {
   ClassInfo,
   Word,
   TimeAvailablity,
-  
-  sync: async function(options = {}) {
+
+  sync: async function (options = {}) {
     await Role.sync(options);
     await Menu.sync(options);
     await ClassType.sync(options);
     await User.sync(options);
-    
+
     await TeacherRate.sync(options);
     await StudentInfo.sync(options);
     await TimeAvailablity.sync(options);
@@ -146,7 +150,7 @@ module.exports = {
     await ClassInfo.sync(options);
     await Word.sync(options);
     await Permission.sync(options);
-    
+
     console.log("All tables synchronized successfully");
-  }
+  },
 };

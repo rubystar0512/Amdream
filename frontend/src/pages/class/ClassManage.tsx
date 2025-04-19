@@ -24,9 +24,12 @@ import { motion } from "framer-motion";
 
 interface Lesson {
   id: number;
+  start_date: { id: number; start_date: string };
+  end_date: { id: number; end_date: string };
   lesson_date: string;
   Student: { id: number; first_name: string; last_name: string };
   Teacher: { id: number; first_name: string; last_name: string };
+  CalendarLink: { startDate: string; endDate: string };
   class_type: { id: number; name: string };
   pay_state: boolean;
 }
@@ -256,8 +259,37 @@ const ClassManage: React.FC = () => {
             {text}
           </span>
         ),
+        sorter: (a: any, b: any) => {
+          const aTime = new Date(a.lesson_date || "0000-01-01").getTime();
+          const bTime = new Date(b.lesson_date || "0000-01-01").getTime();
+          return aTime - bTime;
+        },
+      },
+      {
+        title: "Start Date",
+        dataIndex: "calendar_link",
+        key: "startDate",
+        render: (calendar_link: any) => (
+          <span className="font-medium text-gray-900 dark:text-white">
+            {calendar_link?.startDate ? calendar_link.startDate : "0000-00-00"}
+          </span>
+        ),
         sorter: (a: any, b: any) =>
-          new Date(a.lesson_date).getTime() - new Date(b.lesson_date).getTime(),
+          new Date(a.calendar_link?.startDate || "0000-00-00").getTime() -
+          new Date(b.calendar_link?.startDate || "0000-00-00").getTime(),
+      },
+      {
+        title: "End Date",
+        dataIndex: "calendar_link",
+        key: "endDate",
+        render: (calendar_link: any) => (
+          <span className="font-medium text-gray-900 dark:text-white">
+            {calendar_link?.endDate ? calendar_link.endDate : "0000-00-00"}
+          </span>
+        ),
+        sorter: (a: any, b: any) =>
+          new Date(a.calendar_link?.endDate || "0000-00-00").getTime() -
+          new Date(b.calendar_link?.endDate || "0000-00-00").getTime(),
       },
       {
         title: "Student",
@@ -372,6 +404,7 @@ const ClassManage: React.FC = () => {
       student_name: `${lesson.Student.first_name} ${lesson.Student.last_name}`,
       teacher_name: `${lesson.Teacher.first_name} ${lesson.Teacher.last_name}`,
       class_type: lesson.class_type.name,
+      calendar_link: lesson.CalendarLink,
       Student: lesson.Student,
       Teacher: lesson.Teacher,
       ClassType: lesson.class_type,
@@ -423,7 +456,7 @@ const ClassManage: React.FC = () => {
         bodyStyle={cardStyles.body}
         extra={
           <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row">
-            <div className="xs:flex-row flex flex-col gap-2">
+            <div className="flex flex-col gap-2 xs:flex-row">
               {permissions.create && (
                 <motion.button
                   whileHover={{ scale: 1.02 }}
@@ -561,16 +594,16 @@ const ClassManage: React.FC = () => {
                 </Select>
               </div>
 
-              <div className="xs:flex-row flex flex-col gap-2 pt-4">
+              <div className="flex flex-col gap-2 pt-4 xs:flex-row">
                 <Button
-                  className="xs:w-auto w-full"
+                  className="w-full xs:w-auto"
                   gradientDuoTone="purpleToBlue"
                   onClick={createLesson}
                 >
                   Add Class
                 </Button>
                 <Button
-                  className="xs:w-auto w-full"
+                  className="w-full xs:w-auto"
                   color="gray"
                   onClick={() => setOpenModal(false)}
                 >
@@ -676,16 +709,16 @@ const ClassManage: React.FC = () => {
                 </Select>
               </div>
 
-              <div className="xs:flex-row flex flex-col gap-2 pt-4">
+              <div className="flex flex-col gap-2 pt-4 xs:flex-row">
                 <Button
-                  className="xs:w-auto w-full"
+                  className="w-full xs:w-auto"
                   gradientDuoTone="purpleToBlue"
                   onClick={updateLesson}
                 >
                   Update Class
                 </Button>
                 <Button
-                  className="xs:w-auto w-full"
+                  className="w-full xs:w-auto"
                   color="gray"
                   onClick={() => setOpenEditModal(false)}
                 >

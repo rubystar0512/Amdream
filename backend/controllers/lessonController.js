@@ -1,7 +1,7 @@
 const moment = require("moment");
-const { Lesson, User, ClassType } = require("../models");
+const { Lesson, User, ClassType, Calendar, sequelize } = require("../models");
 const { user_role } = require("../configs/key");
-
+const { Op, where } = require("sequelize");
 /**
  * @desc Get all lessons with related details
  * @route GET /api/lessons
@@ -15,16 +15,34 @@ exports.getAllLessons = async (req, res) => {
           as: "Student",
           attributes: ["id", "first_name", "last_name"],
           where: { role_id: user_role.student },
+          required: false,
         },
         {
           model: User,
           as: "Teacher",
           attributes: ["id", "first_name", "last_name"],
           where: { role_id: user_role.teacher },
+          required: false,
         },
         {
           model: ClassType,
           attributes: ["id", "name"],
+          required: false,
+        },
+        {
+          model: Calendar,
+          as: "CalendarLink", // use the alias
+          attributes: ["startDate", "endDate"],
+          required: false,
+          on: {
+            [Op.and]: [
+              where(
+                sequelize.col("Lesson.calendar_id"),
+                "=",
+                sequelize.col("CalendarLink.id")
+              ),
+            ],
+          },
         },
       ],
     });

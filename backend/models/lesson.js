@@ -9,6 +9,7 @@ const Lesson = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
+    calendar_id: { type: DataTypes.INTEGER, allowNull: false },
     lesson_date: { type: DataTypes.DATEONLY, allowNull: false },
     student_id: { type: DataTypes.INTEGER, allowNull: false },
     teacher_id: { type: DataTypes.INTEGER, allowNull: false },

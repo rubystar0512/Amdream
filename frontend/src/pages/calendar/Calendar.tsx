@@ -11,6 +11,8 @@ import { usePermissions } from "../../hooks/usePermission";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { useAuth } from "../../hooks/useAuth";
 import api from "../../config";
+import AddEditClassModal from "../class/AddEditClassModal";
+import { useClassModal } from "../../contexts/ClassModalContext";
 
 import "../../App.scss";
 import { Label } from "flowbite-react";
@@ -29,6 +31,35 @@ function Calendar() {
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
   const [timeRanges, setTimeRanges] = useState<any[]>([]);
   const [recurrenceRule, setRecurrenceRule] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<number | 0>(0);
+  const { isOpen, formData, openModal, closeModal, resetForm } =
+    useClassModal();
+  const handleSubmit = async (studentId: number) => {
+    const { date, course, unit, canDo, notes } = formData;
+
+    if (!date || !course || !unit || !canDo) {
+      toast.error("Please fill in all required fields.", { theme: "dark" });
+      return;
+    }
+
+    try {
+      await api.post("/class-info", {
+        date,
+        course,
+        unit,
+        can_do: canDo,
+        notes,
+        student_id: studentId,
+        teacher_id: auth.user?.id,
+      });
+      toast.success("Class info added successfully!", { theme: "dark" });
+    } catch (error: any) {
+      handleApiError(error);
+    } finally {
+      closeModal();
+      resetForm();
+    }
+  };
 
   const isManager =
     auth.user?.role === "manager" || auth.user?.role === "admin";
@@ -197,7 +228,7 @@ function Calendar() {
           },
         },
       },
-      listeners: {},
+
       // onBeforeSave: async (data: any) => {
       //   try {
       //     // Make API call to save the event
@@ -219,6 +250,7 @@ function Calendar() {
       // },
     },
   });
+
   useEffect(() => {
     if (!loading_1) {
       if (!permissions.read) {
@@ -242,7 +274,6 @@ function Calendar() {
         const fetchData = async () => {
           setLoading(true);
           try {
-            console.log("dddd");
             const response = await api.get("/students");
             const studentsList = response?.data
               ?.filter(
@@ -257,6 +288,41 @@ function Calendar() {
             setCalendarProps((prev: any) => ({
               ...prev,
               listeners: {
+                ...prev.listeners,
+
+                beforeEventSave: (eventRecord: any) => {
+                  const isTeacher = auth.user?.role === "teacher";
+                  if (
+                    isTeacher &&
+                    eventRecord.values.class_status === "given"
+                  ) {
+                    openModal(
+                      {
+                        date: "",
+                        course: "",
+                        unit: "",
+                        canDo: "",
+                        notes: "",
+                      },
+                      false,
+                    );
+                    setSelectedStudentId(eventRecord.values.student_name);
+                    console.log(
+                      "🎯 Detected teacher saving 'given' status",
+                      eventRecord.values.student_name,
+                      auth.user?.id,
+                      isOpen,
+                    );
+                    // navigate("/class-info", {
+                    //   state: {
+                    //     studentId: eventRecord.student_id,
+                    //   },
+                    // });
+                  }
+
+                  return true; // Must return true to allow the save
+                },
+
                 beforeEventEdit: (context: any) => {
                   const eventRecord = context?.eventRecord;
                   const isManager =
@@ -297,6 +363,7 @@ function Calendar() {
               },
               eventEditFeature: {
                 ...prev.eventEditFeature,
+
                 editorConfig: {
                   ...prev.eventEditFeature?.editorConfig,
                   items: {
@@ -319,7 +386,6 @@ function Calendar() {
                         ?.classStatusField,
                   },
                 },
-                listeners: {},
               },
             }));
             setLoading(false);
@@ -596,6 +662,7 @@ function Calendar() {
             </div>
           </Modal>
         </Card>
+        <AddEditClassModal onSubmit={() => handleSubmit(selectedStudentId)} />
       </motion.div>
     </div>
   );

@@ -37,7 +37,7 @@ exports.getAllLessons = async (req, res) => {
           on: {
             [Op.and]: [
               where(
-                sequelize.col("Lesson.calendar_id"),
+                sequelize.col("lesson.calendar_id"),
                 "=",
                 sequelize.col("CalendarLink.id")
               ),

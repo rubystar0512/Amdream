@@ -161,9 +161,11 @@ exports.saveEvents = async (req, res) => {
             } else {
               classTypeId = 2;
             }
+            const now = new Date();
+            const current_date = now.toLocaleDateString();
             await Lesson.create({
               calendar_id: newEvent.id,
-              lesson_date: "0000-00-00",
+              lesson_date: current_date,
               student_id: parseInt(event.student_name),
               teacher_id: teacherId,
               class_type_id: classTypeId,
@@ -378,6 +380,33 @@ exports.addTimerange = async (req, res) => {
 };
 
 exports.getTimeranges = async (req, res) => {
+  const { id } = req.params;
+  const timeRangesRawData = await TimeAvailablity.findAll({
+    where: { teacher_id: id },
+    include: [
+      {
+        model: User,
+        as: "Teacher",
+        attributes: ["first_name", "last_name"],
+      },
+    ],
+  });
+
+  const timeRanges = timeRangesRawData.map((timeRange) => ({
+    id: timeRange.id,
+    teacher_id: timeRange.teacher_id,
+    startDate: timeRange.startDate.toISOString(),
+    endDate: timeRange.endDate.toISOString(),
+    name: `${timeRange.Teacher.first_name} ${timeRange.Teacher.last_name} 's availability`,
+    color: stringToColor(
+      `${timeRange.Teacher.first_name} ${timeRange.Teacher.last_name}`
+    ),
+    recurrenceRule: timeRange.recurrenceRule,
+  }));
+  res.status(200).json({ success: true, timeRanges });
+};
+
+exports.getAllTimeranges = async (req, res) => {
   const timeRangesRawData = await TimeAvailablity.findAll({
     include: [
       {

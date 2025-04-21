@@ -98,6 +98,7 @@ exports.createLesson = async (req, res) => {
       student_id,
       teacher_id,
       class_type_id,
+      calendar_id: 0,
     });
 
     const lessons = await Lesson.findAll({

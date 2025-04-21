@@ -30,6 +30,7 @@ function Calendar() {
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
   const [timeRanges, setTimeRanges] = useState<any[]>([]);
+  const [isTimerange, setIsTimerange] = useState<any[]>([]);
   const [recurrenceRule, setRecurrenceRule] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<number | 0>(0);
   const { isOpen, formData, openModal, closeModal, resetForm } =
@@ -332,9 +333,14 @@ function Calendar() {
                   const isValid = isWithinAvailableTime(
                     eventRecord?.startDate,
                     eventRecord?.endDate,
-                    timeRanges,
+                    isTimerange,
                   );
-
+                  console.log(
+                    "valid time",
+                    eventRecord?.startDate,
+                    eventRecord?.endDate,
+                    isTimerange,
+                  );
                   if (isManager && !isValid) {
                     toast.info(
                       "Managers cannot edit unavailable time ranges.",
@@ -494,8 +500,10 @@ function Calendar() {
   useEffect(() => {
     const fetchTimeRanges = async () => {
       try {
-        const response = await api.get("/calendar/timerange");
-        setTimeRanges([...response.data?.timeRanges]);
+        const response1 = await api.get(`/calendar/timerange/${auth.user?.id}`);
+        setTimeRanges([...response1.data?.timeRanges]);
+        const response2 = await api.get("/calendar/timerange");
+        setIsTimerange([...response2.data?.timeRanges]);
       } catch (error) {
         handleApiError(error);
       }

@@ -139,7 +139,8 @@ router.put(
 router.get("/calendar/events", calendarController.getAllEvents);
 router.post("/calendar/events", calendarController.saveEvents);
 
-router.get("/calendar/timerange", calendarController.getTimeranges);
+router.get("/calendar/timerange/:id", calendarController.getTimeranges);
+router.get("/calendar/timerange", calendarController.getAllTimeranges);
 router.post("/calendar/timerange", calendarController.addTimerange);
 router.delete("/calendar/timerange/:id", calendarController.deleteTimerange);
 
